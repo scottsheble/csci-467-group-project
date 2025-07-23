@@ -1,3 +1,5 @@
+import Footer from "@/components/footer";
+import Header from "@/components/header";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -22,10 +24,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
-    </html>
+    <>
+      <style>{`
+        html, body {
+          height: 100%;
+        }
+        body {    
+          margin: 0px;
+          padding: 0px;
+        }
+        #content-wrap {
+          height: 100%;
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+        }
+      `}</style>
+      <html lang="en">
+        <Header />
+        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          <div id="content-wrap">
+            {children}
+          </div>
+        </body>
+        <Footer />
+      </html>
+    </>
   );
 }
