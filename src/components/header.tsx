@@ -66,7 +66,7 @@ export default function Header() {
                     </div>
                     <nav className="header-nav">
                         <Link href="/about">About</Link>
-                        <Link href="/contact">contact</Link>
+                        <Link href="/contact">Contact</Link>
                     </nav>
                 </div>
             </header>
