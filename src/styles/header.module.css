@@ -1,0 +1,48 @@
+.header {
+    width: 100%;
+    padding: 1rem 2.5rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(200, 16, 46);
+    color: white;
+}
+.headerContainer {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.headerLogo {
+    height: 75px;
+}
+.headerTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.header-nav a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.header-nav a:hover {
+    background: rgb(189, 19, 50);
+    color: #fff;
+    transform: scale(1.07);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+}
