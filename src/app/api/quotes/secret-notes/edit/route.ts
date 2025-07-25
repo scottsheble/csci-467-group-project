@@ -8,13 +8,13 @@ import propagate from "@/lib/propagate";
     *
     * Expected HTTP Method: PUT
     * Expected Query Parameters:
-    * - `id`: Required. ID of the secret note to update.
+    * - `secret_note_id`: Required. ID of the secret note to update.
     * Expected JSON Body:
     * - `content`: Required. Updated content of the secret note.
     * 
     * Example Usage:
     * ```Next.js
-    * const response = await fetch('/api/quotes/secret-notes/edit?id=1', {
+    * const response = await fetch('/api/quotes/secret-notes/edit?secret_note_id=1', {
     *   method: 'PUT',
     *   headers: { 'Content-Type': 'application/json' },
     *   body: JSON.stringify({
@@ -30,18 +30,18 @@ export async function PUT (
     try {
         await dbManager.ensureInternalDbInitialized();
 
-        // Check that the `id` was provided
-        const id = propagate(
-            request.nextUrl.searchParams.get('id'),
-            'Missing `id` in request!');
+        // Check that the `secret_note_id` was provided
+        const secret_note_id = propagate(
+            request.nextUrl.searchParams.get('secret_note_id'),
+            'Missing `secret_note_id` in request!');
 
         // Find the secret note to update
         const secretNote = await propagate(internal_db.SecretNote, "SecretNote model not initialized!")
-            .findByPk(id);
+            .findByPk(secret_note_id);
         
         if (!secretNote) {
             return NextResponse.json({
-                error: `Secret note with ID ${id} not found`
+                error: `Secret note with ID ${secret_note_id} not found`
             }, { status: 404 });
         }
 
