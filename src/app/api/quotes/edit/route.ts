@@ -13,6 +13,11 @@ import propagate from "@/lib/propagate";
     * - `email`: Optional. New email address for the quote.
     * - `customer_id`: Optional. New customer ID for the quote.
     * - `status`: Optional. New status for the quote.
+    * - `sales_associate_id`: Optional. New sales associate ID for the quote.
+    * - `initial_discount_value`: Optional. Initial discount value (number).
+    * - `initial_discount_type`: Optional. Initial discount type ('percentage' or 'amount').
+    * - `final_discount_value`: Optional. Final discount value (number).
+    * - `final_discount_type`: Optional. Final discount type ('percentage' or 'amount').
     * 
     * Example Usage:
     * ```Next.js
@@ -21,7 +26,10 @@ import propagate from "@/lib/propagate";
     *   headers: { 'Content-Type': 'application/json' },
     *   body: JSON.stringify({
     *     email: 'newemail@example.com',
-    *     status: 'FinalizedUnresolvedQuote'
+    *     status: 'FinalizedUnresolvedQuote',
+    *     sales_associate_id: 456,
+    *     initial_discount_value: 15,
+    *     initial_discount_type: 'percentage'
     *   })
     * });
     * const updatedQuote = await response.json();
@@ -43,8 +51,29 @@ export async function PATCH (
 
         // Unpack the request JSON body
         const quote_json = await request.json();
-        if ( !quote_json.email && !quote_json.customer_id && !quote_json.status ) {
-            throw new Error('At least one of `email`, `customer_id`, or `status` must be provided!');
+        if ( !quote_json.email && !quote_json.customer_id && !quote_json.status && !quote_json.sales_associate_id &&
+             quote_json.initial_discount_value === undefined && quote_json.initial_discount_type === undefined &&
+             quote_json.final_discount_value === undefined && quote_json.final_discount_type === undefined ) {
+            throw new Error('At least one of `email`, `customer_id`, `status`, `sales_associate_id`, `initial_discount_value`, `initial_discount_type`, `final_discount_value`, or `final_discount_type` must be provided!');
+        }
+
+        // Validate sales associate exists if provided
+        if (quote_json.sales_associate_id !== undefined && quote_json.sales_associate_id !== null) {
+            const salesAssociate = await propagate(internal_db.Employee, "Employee not initialized!")
+                .findByPk(quote_json.sales_associate_id);
+            if (!salesAssociate) {
+                throw new Error(`Sales associate with ID ${quote_json.sales_associate_id} not found!`);
+            }
+        }
+
+        // Validate discount types if provided
+        if (quote_json.initial_discount_type !== undefined && quote_json.initial_discount_type !== null && 
+            !['percentage', 'amount'].includes(quote_json.initial_discount_type)) {
+            throw new Error('initial_discount_type must be either "percentage" or "amount"');
+        }
+        if (quote_json.final_discount_type !== undefined && quote_json.final_discount_type !== null && 
+            !['percentage', 'amount'].includes(quote_json.final_discount_type)) {
+            throw new Error('final_discount_type must be either "percentage" or "amount"');
         }
 
         // Build update object with only provided fields
@@ -52,6 +81,11 @@ export async function PATCH (
         if (quote_json.email !== undefined) updateData.email = quote_json.email;
         if (quote_json.customer_id !== undefined) updateData.customer_id = quote_json.customer_id;
         if (quote_json.status !== undefined) updateData.status = quote_json.status;
+        if (quote_json.sales_associate_id !== undefined) updateData.sales_associate_id = quote_json.sales_associate_id;
+        if (quote_json.initial_discount_value !== undefined) updateData.initial_discount_value = quote_json.initial_discount_value;
+        if (quote_json.initial_discount_type !== undefined) updateData.initial_discount_type = quote_json.initial_discount_type;
+        if (quote_json.final_discount_value !== undefined) updateData.final_discount_value = quote_json.final_discount_value;
+        if (quote_json.final_discount_type !== undefined) updateData.final_discount_type = quote_json.final_discount_type;
 
         // Edit the quote in the internal database
         await propagate(internal_db.Quote, "Quote not initialized!")

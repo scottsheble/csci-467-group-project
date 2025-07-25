@@ -24,7 +24,7 @@ import propagate from "@/lib/propagate";
     * const updatedSecretNote = await response.json();
     * ```
     */
-export async function PUT (
+export async function PATCH (
     request: NextRequest
 ): Promise<NextResponse<SecretNoteAttributes | { error: string }>> {
     try {

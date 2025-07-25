@@ -11,6 +11,11 @@ import propagate from "@/lib/propagate";
     * Expected JSON Body:
     * - `email`: Required. Email address for the quote.
     * - `customer_id`: Required. ID of the customer for this quote.
+    * - `sales_associate_id`: Optional. ID of the sales associate for this quote.
+    * - `initial_discount_value`: Optional. Initial discount value (number).
+    * - `initial_discount_type`: Optional. Initial discount type ('percentage' or 'amount').
+    * - `final_discount_value`: Optional. Final discount value (number).
+    * - `final_discount_type`: Optional. Final discount type ('percentage' or 'amount').
     * 
     * Example Usage:
     * ```Next.js
@@ -19,7 +24,12 @@ import propagate from "@/lib/propagate";
     *   headers: { 'Content-Type': 'application/json' },
     *   body: JSON.stringify({
     *     email: 'customer@example.com',
-    *     customer_id: 123
+    *     customer_id: 123,
+    *     sales_associate_id: 456,
+    *     initial_discount_value: 10,
+    *     initial_discount_type: 'percentage',
+    *     final_discount_value: 50,
+    *     final_discount_type: 'amount'
     *   })
     * });
     * const quote = await response.json();
@@ -36,12 +46,41 @@ export async function POST (
         const quote_email:       string = propagate(quote_json.email, 'Missing `email` in request!');
         const quote_customer_id: number = propagate(quote_json.customer_id, 'Missing `customer_id` in request!');
 
+        // Extract optional fields
+        const sales_associate_id = quote_json.sales_associate_id || null;
+        const initial_discount_value = quote_json.initial_discount_value || null;
+        const initial_discount_type = quote_json.initial_discount_type || null;
+        const final_discount_value = quote_json.final_discount_value || null;
+        const final_discount_type = quote_json.final_discount_type || null;
+
+        // Validate sales associate exists if provided
+        if (sales_associate_id) {
+            const salesAssociate = await propagate(internal_db.Employee, "Employee not initialized!")
+                .findByPk(sales_associate_id);
+            if (!salesAssociate) {
+                throw new Error(`Sales associate with ID ${sales_associate_id} not found!`);
+            }
+        }
+
+        // Validate discount types if provided
+        if (initial_discount_type && !['percentage', 'amount'].includes(initial_discount_type)) {
+            throw new Error('initial_discount_type must be either "percentage" or "amount"');
+        }
+        if (final_discount_type && !['percentage', 'amount'].includes(final_discount_type)) {
+            throw new Error('final_discount_type must be either "percentage" or "amount"');
+        }
+
         // Create the quote in the internal database
         const quote = await propagate(internal_db.Quote, "Quote not initialized!")
             .create({
                 email: quote_email,
                 customer_id: quote_customer_id,
-                status: 'DraftQuote' // Set default status
+                status: 'DraftQuote', // Set default status
+                sales_associate_id,
+                initial_discount_value,
+                initial_discount_type,
+                final_discount_value,
+                final_discount_type
             });
 
         return NextResponse.json(quote, { status: 201 });
