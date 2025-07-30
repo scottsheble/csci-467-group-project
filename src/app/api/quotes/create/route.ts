@@ -1,7 +1,8 @@
 import { internal_db, QuoteAttributes } from "@/models/internal/db";
 import { dbManager } from "@/lib/database";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import propagate from "@/lib/propagate";
+import { withAuth, requireSalesAssociate } from "@/lib/auth-middleware";
 
 /****
     * Creates a new quote in the internal database.
@@ -35,9 +36,10 @@ import propagate from "@/lib/propagate";
     * const quote = await response.json();
     * ```
     */
-export async function POST (
-    request: Request
-): Promise<NextResponse<QuoteAttributes[] | { error: string }>> {
+export const POST = withAuth(async (
+    request: NextRequest,
+    user
+): Promise<NextResponse<QuoteAttributes[] | { error: string }>> => {
     try {
         await dbManager.ensureInternalDbInitialized();
 
@@ -47,7 +49,20 @@ export async function POST (
         const quote_customer_id: number = propagate(quote_json.customer_id, 'Missing `customer_id` in request!');
 
         // Extract optional fields
-        const sales_associate_id = quote_json.sales_associate_id || null;
+        let sales_associate_id = quote_json.sales_associate_id || null;
+        
+        // Auto-assign sales associate if user is a sales associate and none specified
+        if (!sales_associate_id && user.roles.is_sales_associate) {
+            sales_associate_id = user.userId;
+        }
+        
+        // Only admins can assign quotes to other sales associates
+        if (sales_associate_id && sales_associate_id !== user.userId && !user.roles.is_admin) {
+            return NextResponse.json({
+                error: 'You can only create quotes for yourself'
+            }, { status: 403 });
+        }
+        
         const initial_discount_value = quote_json.initial_discount_value || null;
         const initial_discount_type = quote_json.initial_discount_type || null;
         const final_discount_value = quote_json.final_discount_value || null;
@@ -91,4 +106,4 @@ export async function POST (
             error: (err as Error).message,
         }, { status: 500 });
     }
-}
+}, requireSalesAssociate);

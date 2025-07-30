@@ -2,6 +2,7 @@ import { legacy_db, LegacyCustomer } from "@/models/legacy/db";
 import { dbManager } from "@/lib/database";
 import propagate from "@/lib/propagate";
 import { NextRequest, NextResponse } from "next/server";
+import { withAuth, requireAnyRole } from "@/lib/auth-middleware";
 
 /****
     * Gets one or all legacy customers from the legacy database.
@@ -17,9 +18,10 @@ import { NextRequest, NextResponse } from "next/server";
     * const customer = await response.json();
     * ```
     */
-export async function GET (
+export const GET = withAuth(async (
     request: NextRequest,
-): Promise<NextResponse<LegacyCustomer[] | { error: string }>> {
+    user
+): Promise<NextResponse<LegacyCustomer[] | { error: string }>> => {
     try {
         await dbManager.ensureLegacyDbInitialized();
 
@@ -46,4 +48,4 @@ export async function GET (
             error: (err as Error).message,
         }, { status: 500 });
     }
-}
+}, requireAnyRole);

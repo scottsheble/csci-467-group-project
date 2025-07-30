@@ -2,6 +2,7 @@ import { internal_db, QuoteAttributes } from "@/models/internal/db";
 import { dbManager } from "@/lib/database";
 import { NextRequest, NextResponse } from "next/server";
 import propagate from "@/lib/propagate";
+import { withAuth, requireAnyRole } from "@/lib/auth-middleware";
 
 /****
     * Updates an existing quote in the internal database.
@@ -35,9 +36,10 @@ import propagate from "@/lib/propagate";
     * const updatedQuote = await response.json();
     * ```
     */
-export async function PATCH (
-    request: NextRequest
-): Promise<NextResponse<QuoteAttributes[] | { error: string }>> {
+export const PATCH = withAuth(async (
+    request: NextRequest,
+    user
+): Promise<NextResponse<QuoteAttributes[] | { error: string }>> => {
     try {
         await dbManager.ensureInternalDbInitialized();
 
@@ -45,9 +47,27 @@ export async function PATCH (
         const quote_id = propagate(
             request.nextUrl.searchParams.get('quote_id'),
             'Missing `quote_id` in request!');
-        propagate(
+        
+        const existingQuote = propagate(
             await internal_db.Quote?.findByPk(quote_id),
             `Quote with ID ${quote_id} not found!`);
+
+        // Check permissions based on quote status and user role
+        if (user.roles.is_sales_associate && !user.roles.is_admin) {
+            // Sales associates can only edit their own quotes
+            if (existingQuote.sales_associate_id !== user.userId) {
+                return NextResponse.json({
+                    error: 'You can only edit your own quotes'
+                }, { status: 403 });
+            }
+            
+            // Sales associates can only edit draft quotes
+            if (existingQuote.status !== 'DraftQuote') {
+                return NextResponse.json({
+                    error: 'You can only edit draft quotes'
+                }, { status: 403 });
+            }
+        }
 
         // Unpack the request JSON body
         const quote_json = await request.json();
@@ -55,6 +75,41 @@ export async function PATCH (
              quote_json.initial_discount_value === undefined && quote_json.initial_discount_type === undefined &&
              quote_json.final_discount_value === undefined && quote_json.final_discount_type === undefined ) {
             throw new Error('At least one of `email`, `customer_id`, `status`, `sales_associate_id`, `initial_discount_value`, `initial_discount_type`, `final_discount_value`, or `final_discount_type` must be provided!');
+        }
+
+        // Status change permissions
+        if (quote_json.status !== undefined) {
+            const currentStatus = existingQuote.status;
+            const newStatus = quote_json.status;
+            
+            // Sales associates can only finalize their own quotes
+            if (user.roles.is_sales_associate && !user.roles.is_admin) {
+                if (currentStatus === 'DraftQuote' && newStatus === 'FinalizedUnresolvedQuote') {
+                    // Allowed
+                } else {
+                    return NextResponse.json({
+                        error: 'Sales associates can only finalize draft quotes'
+                    }, { status: 403 });
+                }
+            }
+            
+            // Quote managers can sanction finalized quotes
+            if (user.roles.is_quote_manager || user.roles.is_admin) {
+                if (newStatus === 'SanctionedQuote' && currentStatus !== 'FinalizedUnresolvedQuote') {
+                    return NextResponse.json({
+                        error: 'Can only sanction finalized quotes'
+                    }, { status: 400 });
+                }
+            }
+            
+            // Purchase managers can create purchase orders from sanctioned quotes
+            if (user.roles.is_purchase_manager || user.roles.is_admin) {
+                if (newStatus === 'UnprocessedPurchaseOrder' && currentStatus !== 'SanctionedQuote') {
+                    return NextResponse.json({
+                        error: 'Can only create purchase orders from sanctioned quotes'
+                    }, { status: 400 });
+                }
+            }
         }
 
         // Validate sales associate exists if provided
@@ -116,4 +171,4 @@ export async function PATCH (
             error: (err as Error).message,
         }, { status: 500 });
     }
-}
+}, requireAnyRole);

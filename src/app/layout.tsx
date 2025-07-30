@@ -3,6 +3,7 @@ import Header from "@/components/header";
 import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Initialize database connections
 import "@/lib/init-db";
@@ -28,18 +29,18 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<>
-			<html lang="en">
-				<Header />
-				<body 
-					className={`${geistSans.variable} ${geistMono.variable}`}
-				>
+		<html lang="en">
+			<body 
+				className={`${geistSans.variable} ${geistMono.variable}`}
+			>
+				<AuthProvider>
+					<Header />
 					<div id="content-wrap">
 						{children}
 					</div>
-				</body>
-				<Footer />
-			</html>
-		</>
+					<Footer />
+				</AuthProvider>
+			</body>
+		</html>
 	);
 }

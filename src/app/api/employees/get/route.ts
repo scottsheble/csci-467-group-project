@@ -2,6 +2,7 @@ import { internal_db, EmployeeAttributes } from "@/models/internal/db";
 import { dbManager } from "@/lib/database";
 import { NextRequest, NextResponse } from "next/server";
 import propagate from "@/lib/propagate";
+import { withAuth, requireAdmin } from "@/lib/auth-middleware";
 
 /****
     * Gets employees from the internal database.
@@ -26,9 +27,10 @@ import propagate from "@/lib/propagate";
     * const salesAssociates = await response.json();
     * ```
     */
-export async function GET (
-    request: NextRequest
-): Promise<NextResponse<EmployeeAttributes[] | EmployeeAttributes | { error: string }>> {
+export const GET = withAuth(async (
+    request: NextRequest,
+    user
+): Promise<NextResponse<EmployeeAttributes[] | EmployeeAttributes | { error: string }>> => {
     try {
         await dbManager.ensureInternalDbInitialized();
 
@@ -67,4 +69,4 @@ export async function GET (
             error: (err as Error).message,
         }, { status: 500 });
     }
-}
+}, requireAdmin);

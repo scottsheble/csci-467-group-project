@@ -3,6 +3,7 @@ import { dbManager } from "@/lib/database";
 import { NextRequest, NextResponse } from "next/server";
 import propagate from "@/lib/propagate";
 import { Op } from "sequelize";
+import { withAuth, requireAnyRole } from "@/lib/auth-middleware";
 
 /****
     * Gets one or all quotes from the internal database with optional filtering.
@@ -32,9 +33,10 @@ import { Op } from "sequelize";
     * const filteredQuotes = await response.json();
     * ```
     */
-export async function GET (
-    request: NextRequest
-): Promise<NextResponse<QuoteAttributes[] | { error: string }>> {
+export const GET = withAuth(async (
+    request: NextRequest,
+    user
+): Promise<NextResponse<QuoteAttributes[] | { error: string }>> => {
     try {
         await dbManager.ensureInternalDbInitialized();
 
@@ -57,11 +59,25 @@ export async function GET (
                 }, { status: 404 });
             }
 
+            // Sales associates can only view their own quotes
+            if (user.roles.is_sales_associate && !user.roles.is_admin) {
+                if (quote.sales_associate_id !== user.userId) {
+                    return NextResponse.json({
+                        error: 'Unauthorized to view this quote'
+                    }, { status: 403 });
+                }
+            }
+
             return NextResponse.json(quote);
         }
 
         // Build where clause for filtering
         const whereClause: any = {};
+        
+        // Sales associates can only see their own quotes
+        if (user.roles.is_sales_associate && !user.roles.is_admin) {
+            whereClause.sales_associate_id = user.userId;
+        }
         
         // Filter by status
         const status = request.nextUrl.searchParams.get('status');
@@ -92,9 +108,9 @@ export async function GET (
             }
         }
 
-        // Filter by sales associate
+        // Filter by sales associate (only if user has permission)
         const sales_associate_id = request.nextUrl.searchParams.get('sales_associate_id');
-        if (sales_associate_id) {
+        if (sales_associate_id && (user.roles.is_admin || user.roles.is_quote_manager || user.roles.is_purchase_manager)) {
             whereClause.sales_associate_id = sales_associate_id;
         }
 
@@ -126,4 +142,4 @@ export async function GET (
             error: (err as Error).message,
         }, { status: 500 });
     }
-}
+}, requireAnyRole);

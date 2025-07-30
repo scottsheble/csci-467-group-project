@@ -8,9 +8,11 @@ export interface QuoteAttributes {
     id: CreationOptional<number>;
     email: string;
     customer_id: number;
+
     status: string;
     date_created: CreationOptional<Date>;
     sales_associate_id: number | null;
+    
     initial_discount_value: CreationOptional<number | null>;
     initial_discount_type: CreationOptional<'percentage' | 'amount' | null>;
     final_discount_value: CreationOptional<number | null>;
