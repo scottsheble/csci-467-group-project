@@ -3,6 +3,7 @@ import { dbManager } from "@/lib/database";
 import { NextRequest, NextResponse } from "next/server";
 import propagate from "@/lib/propagate";
 import { withAuth, requireAnyRole } from "@/lib/auth-middleware";
+import { sendEmail } from "@/lib/email";
 
 /****
     * Updates an existing quote in the internal database.
@@ -163,6 +164,77 @@ export const PATCH = withAuth(async (
             }, { status: 404 });
         }
 
+        // **Send email notification if quote is sanctioned
+        if (
+            quote_json.status === 'SanctionedQuote' &&
+            existingQuote.status !== 'SanctionedQuote'
+        ) {
+            // Prepare quote data for email (exclude secret notes)
+            const { SecretNotes, ...quoteDataForEmail } = updated_quote.get({ plain: true });
+
+            // Format line items for text and HTML
+            const lineItems = (quoteDataForEmail.LineItems || [])
+                .map(item => `- ${item.description}: $${Number(item.price).toFixed(2)}`)
+                .join('\n');
+
+            const lineItemsHtml = (quoteDataForEmail.LineItems || [])
+                .map(item => `<li>${item.description}: $${Number(item.price).toFixed(2)}</li>`)
+                .join('');
+
+            // Calculate subtotal and discount
+            const subtotal = (quoteDataForEmail.LineItems || [])
+                .reduce((sum, item) => sum + Number(item.price), 0);
+
+            let discount = 0;
+            if (quoteDataForEmail.final_discount_value && quoteDataForEmail.final_discount_type) {
+                if (quoteDataForEmail.final_discount_type === 'percentage') {
+                    discount = subtotal * (Number(quoteDataForEmail.final_discount_value) / 100);
+                } else {
+                    discount = Number(quoteDataForEmail.final_discount_value);
+                }
+            }
+            const total = subtotal - discount;
+
+            // Compose email content
+            const emailText = `
+Your quote is now finalized!
+
+Quote ID: ${quoteDataForEmail.id}
+Line Items:
+${lineItems}
+
+Subtotal: $${subtotal.toFixed(2)}
+${discount > 0 ? `Discount: -$${discount.toFixed(2)}` : ''}
+Total: $${total.toFixed(2)}
+
+Thank you for your business!
+`;
+
+            const emailHtml = `
+        <h2>Your quote is now finalized!</h2>
+        <p><strong>Quote ID:</strong> ${quoteDataForEmail.id}</p>
+        <ul>
+            ${lineItemsHtml}
+        </ul>
+        <p><strong>Subtotal:</strong> $${subtotal.toFixed(2)}</p>
+        ${discount > 0 ? `<p><strong>Discount:</strong> -$${discount.toFixed(2)}</p>` : ''}
+        <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+        <p>Thank you for your business!</p>
+    `;
+
+            try {
+                await sendEmail({
+                    to: quoteDataForEmail.email,
+                    subject: 'Your Finalized Quote',
+                    text: emailText,
+                    html: emailHtml,
+                });
+            } catch (emailErr) {
+                console.error('Failed to send quote email:', emailErr);
+                // Optionally, handle/log email errors as needed
+            }
+        }
+        //** */
         return NextResponse.json(updated_quote, { status: 200 });
     } catch (err) {
         console.log('ERROR: API - ', (err as Error).message);
