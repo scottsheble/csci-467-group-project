@@ -133,7 +133,7 @@ export const PATCH = withAuth(async (
         }
 
         // Build update object with only provided fields
-        const updateData: any = {};
+        const updateData: Partial<QuoteAttributes> = {};
         if (quote_json.email !== undefined) updateData.email = quote_json.email;
         if (quote_json.customer_id !== undefined) updateData.customer_id = quote_json.customer_id;
         if (quote_json.status !== undefined) updateData.status = quote_json.status;
@@ -174,16 +174,16 @@ export const PATCH = withAuth(async (
 
             // Format line items for text and HTML
             const lineItems = (quoteDataForEmail.LineItems || [])
-                .map(item => `- ${item.description}: $${Number(item.price).toFixed(2)}`)
+                .map((item: { description: string; price: number }) => `- ${item.description}: $${Number(item.price).toFixed(2)}`)
                 .join('\n');
 
             const lineItemsHtml = (quoteDataForEmail.LineItems || [])
-                .map(item => `<li>${item.description}: $${Number(item.price).toFixed(2)}</li>`)
+                .map((item: { description: string; price: number }) => `<li>${item.description}: $${Number(item.price).toFixed(2)}</li>`)
                 .join('');
 
             // Calculate subtotal and discount
             const subtotal = (quoteDataForEmail.LineItems || [])
-                .reduce((sum, item) => sum + Number(item.price), 0);
+                .reduce((sum: number, item: { price: number }) => sum + Number(item.price), 0);
 
             let discount = 0;
             if (quoteDataForEmail.final_discount_value && quoteDataForEmail.final_discount_type) {
