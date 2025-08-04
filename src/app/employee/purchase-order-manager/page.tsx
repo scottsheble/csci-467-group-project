@@ -127,7 +127,7 @@ export default function PurchaseOrderManager() {
           )}
         </div>
 
-        {/* RIGHT: Blitz Form */}
+        {}
         {selectedQuote && (
           <div className="w-full lg:w-1/2">
             <h2 className="text-lg font-semibold mb-2">
