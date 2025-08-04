@@ -30,7 +30,7 @@ export async function sendEmail({
 }
 
 // Example usage in a route or service
-import { sendEmail } from "@/lib/email";
+//import { sendEmail } from "@/lib/email";
 
 async function notifyCustomer() {
     await sendEmail({
