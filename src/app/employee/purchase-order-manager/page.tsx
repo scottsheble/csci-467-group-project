@@ -1,149 +1,166 @@
-"use client";
-
-import type { LegacyCustomerAttributes } from "@/models/legacy/db";
-import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
+'use client';
 import { useEffect, useState } from 'react';
 
-export default function Home() {
-	const [customers, setCustomers] = useState<LegacyCustomerAttributes[]>([]);
-	const [error, setError] = useState<string>('');
-	const { user, isLoading } = useAuth();
+type Quote = {
+  id: number;
+  customer_id: number;
+  customer_name: string,
+  email: string;
+  total: number;
+  status: string;
+  sales_associate_id: number;
+};
 
-	useEffect(() => {
-		async function fetchCustomers() {
-			try {
-				const response = await fetch('/api/customers/get');
-				if (!response.ok) {
-					if (response.status === 401) {
-						setError('Please log in to view customers');
-						return;
-					}
-					throw new Error('Network response was not ok');
-				}
-				const data: LegacyCustomerAttributes[] = await response.json();
-				setCustomers(data);
-			} catch (error) {
-				console.error('Failed to fetch customers:', error);
-				setError('Failed to fetch customers');
-			}
-		}
+export default function PurchaseOrderManager() {
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [discount, setDiscount] = useState<number>(0);
+  const [error, setError] = useState('');
 
-		if (!isLoading) {
-			fetchCustomers();
-		}
-	}, [isLoading]);
+  const fetchQuotes = async () => {
+    try {
+      const res = await fetch('/api/quotes/get?status=SanctionedQuote');
+      const data = await res.json();
+      const patched = data.map((q: any) => ({
+        ...q,
+        total: q.total ?? 123.45,
+      }));
+      setQuotes(patched);
+    } catch (err) {
+      setError('Failed to load quotes.');
+    }
+  };
 
-	if (isLoading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="text-lg">Loading...</div>
-			</div>
-		);
-	}
+  useEffect(() => {
+    fetchQuotes();
+  }, []);
 
-	return (
-		<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-			<div className="text-center mb-8">
-				<h1 className="text-4xl font-bold text-gray-900 mb-4">
-					Welcome to Quote Management System
-				</h1>
-				<p className="text-lg text-gray-600 mb-8">
-					Streamline your sales quote process with our comprehensive management platform
-				</p>
-				
-				{!user ? (
-					<div className="space-y-4">
-						<p className="text-gray-700">Please log in to access the system.</p>
-						<Link 
-							href="/login"
-							className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-medium"
-						>
-							Login to Get Started
-						</Link>
-					</div>
-				) : (
-					<div className="space-y-6">
-						<div className="bg-green-50 border border-green-200 rounded-md p-4">
-							<p className="text-green-800">
-								Welcome back, <strong>{user.name}</strong>! 
-							</p>
-						</div>
-						
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-							{user.roles.is_sales_associate && (
-								<Link 
-									href="/quotes"
-									className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-4 text-center"
-								>
-									<h3 className="font-semibold text-blue-900">My Quotes</h3>
-									<p className="text-sm text-blue-700 mt-1">Create and manage your quotes</p>
-								</Link>
-							)}
-							
-							{(user.roles.is_quote_manager || user.roles.is_admin) && (
-								<Link 
-									href="/quotes/manage"
-									className="bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-4 text-center"
-								>
-									<h3 className="font-semibold text-purple-900">Manage Quotes</h3>
-									<p className="text-sm text-purple-700 mt-1">Process and sanction quotes</p>
-								</Link>
-							)}
-							
-							{(user.roles.is_purchase_manager || user.roles.is_admin) && (
-								<Link 
-									href="/purchase-orders"
-									className="bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg p-4 text-center"
-								>
-									<h3 className="font-semibold text-green-900">Purchase Orders</h3>
-									<p className="text-sm text-green-700 mt-1">Convert quotes to orders</p>
-								</Link>
-							)}
-							
-							{user.roles.is_admin && (
-								<Link 
-									href="/admin"
-									className="bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg p-4 text-center"
-								>
-									<h3 className="font-semibold text-red-900">Administration</h3>
-									<p className="text-sm text-red-700 mt-1">Manage employees and system</p>
-								</Link>
-							)}
-						</div>
-					</div>
-				)}
-			</div>
+  const handleSubmit = async () => {
+    if (!selectedQuote) return;
+    const discountedTotal = selectedQuote.total - discount;
 
-			{user && (
-				<div className="mt-12">
-					<h2 className="text-2xl font-bold text-gray-900 mb-4">Customer Directory</h2>
-					{error ? (
-						<div className="bg-red-50 border border-red-200 rounded-md p-4">
-							<p className="text-red-800">{error}</p>
-						</div>
-					) : customers.length > 0 ? (
-						<div className="bg-white shadow overflow-hidden sm:rounded-md">
-							<ul className="divide-y divide-gray-200">
-								{customers.map(customer => (
-									<li key={customer.id} className="px-6 py-4">
-										<div className="flex items-center justify-between">
-											<div>
-												<h3 className="text-lg font-medium text-gray-900">{customer.name}</h3>
-												<p className="text-sm text-gray-500">ID: {customer.id}</p>
-											</div>
-										</div>
-									</li>
-								))}
-							</ul>
-						</div>
-					) : (
-						<div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-							<p className="text-gray-700">No customers found.</p>
-						</div>
-					)}
-				</div>
-			)}
-		</div>
-	);
+    const payload = {
+      order: `order-${Date.now()}`,
+      associate: selectedQuote.sales_associate_id,
+      custid: selectedQuote.customer_id.toString(),
+      amount: discountedTotal.toFixed(2),
+    };
+
+    try {
+      const res = await fetch('http://blitz.cs.niu.edu/PurchaseOrder/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json();
+
+      if (result.errors) {
+        setError(result.errors.join(', '));
+      } else {
+        alert(
+          `Order processed on ${result.processDay} with ${result.commission} commission`
+        );
+
+        await fetch('/api/quotes/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quoteId: selectedQuote.id,
+            finalDiscount: discount,
+            finalTotal: discountedTotal,
+            processDate: result.processDay,
+            commissionRate: result.commission,
+          }),
+        });
+
+        // Refresh quotes after successful order
+        fetchQuotes();
+      }
+    } catch (err) {
+      setError('Error sending request to Blitz system.');
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-4">Quote Purchase Manager</h1>
+
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {}
+        <div className="w-full lg:w-1/2">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-semibold">Sanctioned Quotes</h2>
+            <button
+              className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+              onClick={fetchQuotes}
+            >
+              Refresh Quotes
+            </button>
+          </div>
+
+          {quotes.length === 0 ? (
+            <p className="text-gray-600 italic">No sanctioned quotes available.</p>
+          ) : (
+            <ul className="space-y-2">
+              {quotes.map((quote) => (
+                <li key={quote.id} className="p-3 border rounded shadow-sm">
+                  <label>
+                    <input
+                      type="radio"
+                      name="quote"
+                      value={quote.id}
+                      onChange={() => setSelectedQuote(quote)}
+                      className="mr-2"
+                    />
+                    Quote #{quote.id} | Customer #{quote.customer_id} | $
+                    {quote.total.toFixed(2)}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* RIGHT: Blitz Form */}
+        {selectedQuote && (
+          <div className="w-full lg:w-1/2">
+            <h2 className="text-lg font-semibold mb-2">
+              Submit Quote #{selectedQuote.id} to Blitz
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-medium mb-1">Final Discount ($):</label>
+                <input
+                  type="number"
+                  value={discount}
+                  min={0}
+                  max={selectedQuote.total}
+                  onChange={(e) => setDiscount(parseFloat(e.target.value))}
+                  className="w-full border px-2 py-1"
+                />
+              </div>
+
+              <p>
+                <strong>Final Total:</strong> $
+                {(selectedQuote.total - discount).toFixed(2)}
+              </p>
+
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Submit to Blitz
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
