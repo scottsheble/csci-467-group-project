@@ -4,6 +4,7 @@ import createLineItemModel, { LineItem } from './lineitem';
 import createSecretNoteModel, { SecretNote } from './secretnote';
 import createEmployeeModel, { Employee } from './employee';
 import path from 'path';
+import * as sqlite3 from 'sqlite3';
 
 export type { QuoteAttributes } from './quote';
 export type { LineItemAttributes } from './lineitem';
@@ -43,7 +44,7 @@ async function initializeWithLocalDb(dbPath?: string) {
                 foreign_keys: 1
             }
         },
-        dialectModule: require('sqlite3')
+        dialectModule: sqlite3
     });
 
     // Initialize models with this sequelize instance

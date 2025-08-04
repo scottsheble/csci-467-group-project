@@ -6,6 +6,7 @@ const connectionParams = {
     database: 'csci467'    
 };
 
+import * as mysql2 from 'mysql2';
 import { Sequelize } from 'sequelize';
 import createLegacyCustomerModel, { LegacyCustomer } from './customer';
 
@@ -22,7 +23,7 @@ async function initialize() {
     const sequelize = new Sequelize(
         `mysql://${connectionParams.user}:${connectionParams.password}@${connectionParams.host}:${connectionParams.port}/${connectionParams.database}`, {
         dialect: 'mysql',
-        dialectModule: require('mysql2')
+        dialectModule: mysql2
     });
 
     legacy_db.LegacyCustomer = createLegacyCustomerModel(sequelize);

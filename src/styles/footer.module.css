@@ -2,8 +2,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color:rgb(200, 16, 46);
-    color: white;
+    background-color:var(--primary-color);
+    color: var(--text-accent-color);
     border-radius: 10px 10px 0px 0px;
 }
 

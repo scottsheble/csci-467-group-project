@@ -27,20 +27,7 @@ export default function LoginPage() {
             const data = await response.json();
 
             if (response.ok) {
-                // Redirect based on user role
-                const { roles } = data.user;
-                
-                if (roles.is_admin) {
-                    router.push('/employee/administrator');
-                } else if (roles.is_purchase_manager) {
-                    router.push('/employee/purchase-order-manager');
-                } else if (roles.is_quote_manager) {
-                    router.push('/employee/quote-manager');
-                } else if (roles.is_sales_associate) {
-                    router.push('/employee/sales-associate');
-                } else {
-                    router.push('/');
-                }
+                router.push('/');
             } else {
                 setError(data.error || 'Login failed');
             }
