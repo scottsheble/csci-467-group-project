@@ -1,0 +1,348 @@
+/* Sales Associate page styles */
+.container {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.container.modalOpen {
+    overflow: hidden;
+}
+
+.content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text-color), var(--text-accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+.welcomeCard {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.3),
+        0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcomeCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--text-accent-color));
+}
+
+.loginPrompt {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loginLink {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-accent-color) 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(97, 137, 47, 0.3);
+}
+
+.loginLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(97, 137, 47, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+.welcomeMessage {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.dashboardGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.3),
+        0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--text-accent-color));
+}
+
+.cardTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-accent-color);
+}
+
+.actionCard {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.actionCard:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.actionCard .card {
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.actionCard:hover .card {
+    border-color: var(--accent-color);
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+}
+
+.customerSelect {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.select {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.select option {
+    background: var(--primary-color);
+    color: var(--text-color);
+}
+
+.primaryButton {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-accent-color) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(97, 137, 47, 0.3);
+    font-size: 1rem;
+}
+
+.primaryButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(97, 137, 47, 0.4);
+}
+
+.primaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #666 0%, #999 100%);
+}
+
+.secondaryButton {
+    background: transparent;
+    color: var(--text-color);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.secondaryButton:hover {
+    border-color: var(--accent-color);
+    background: rgba(97, 137, 47, 0.1);
+}
+
+.customerCount {
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.quotesList {
+    margin-top: 2rem;
+}
+
+.quotesHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.quoteItem {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.quoteItem:hover {
+    border-color: var(--accent-color);
+    background: rgba(97, 137, 47, 0.1);
+}
+
+.quoteInfo {
+    flex: 1;
+    min-width: 200px;
+}
+
+.quoteNumber {
+    color: var(--text-accent-color);
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.noQuotes {
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+    padding: 2rem;
+    font-style: italic;
+}
+
+.quoteCount {
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .dashboardGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .customerSelect {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quotesHeader {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quoteItem {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+}
+
+/* Modal expansion styles */
+.dashboardGrid.modalOpen {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboardGrid.modalOpen .card {
+    position: relative;
+    z-index: 2;
+}
+
+/* When modal is open, make the grid single column to allow full width expansion */
+.dashboardGrid.modalOpen {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+}
+
+.dashboardGrid.modalOpen .card {
+    max-width: 100%;
+}
