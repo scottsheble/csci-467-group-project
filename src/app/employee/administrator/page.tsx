@@ -460,8 +460,15 @@ export default function Home() {
                     }
                   >
                     <option value="">Status</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Finalized">Finalized</option>
+                    <option value="DraftQuote">Draft Quote</option>
+                    <option value="FinalizedUnresolvedQuote">
+                      Finalized Unresolved Quote
+                    </option>
+                    <option value="SanctionedQuote">Sanctioned Quote</option>
+                    <option value="UnprocessedPurchaseOrder">
+                      Unprocessed Purchase Order
+                    </option>
+                    <option value="Processed">Processed</option>
                   </select>
                   <select
                     className={styles.select}
