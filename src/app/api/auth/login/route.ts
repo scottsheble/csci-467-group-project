@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
         const user = await authenticateEmployee(email, password);
         
         if (!user) {
+            console.log(`???? ${user}`);
             return NextResponse.json(
                 { error: 'Invalid email or password' },
                 { status: 401 }

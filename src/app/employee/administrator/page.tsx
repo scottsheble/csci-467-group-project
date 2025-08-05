@@ -4,7 +4,8 @@ import type { LegacyCustomerAttributes } from "@/models/legacy/db";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import Background from "@/components/background";
+import styles from "@/styles/administrator.module.css";
 
 export default function Home() {
   const [customers, setCustomers] = useState<LegacyCustomerAttributes[]>([]);
@@ -112,8 +113,13 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className={styles.container}>
+        <Background />
+        <div className={styles.content}>
+          <div className={styles.welcomeCard}>
+            <div className={styles.loginPrompt}>Loading...</div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -231,439 +237,394 @@ export default function Home() {
 
   // Main content of the administrator home page
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Welcome to Quote Management System
-        </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Streamline your sales quote process with our comprehensive management
-          platform
-        </p>
+    <div className={styles.container}>
+      <Background />
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>
+            Administration Panel
+          </h1>
+          <p className={styles.subtitle}>
+            Manage your sales associates and quotes efficiently with our comprehensive platform.
+          </p>
+        </div>
 
         {!user ? (
-          <div className="space-y-4">
-            <p className="text-gray-700">Please log in to access the system.</p>
-            <Link
-              href="/login"
-              className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-medium"
-            >
-              Login to Get Started
-            </Link>
+          <div className={styles.welcomeCard}>
+            <div className={styles.loginPrompt}>
+              <p>Please log in to access the system.</p>
+              <Link href="/login" className={styles.loginLink}>
+                Login to Get Started
+              </Link>
+            </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-green-50 border border-green-200 rounded-md p-4">
-              <p className="text-green-800">
+          <div>
+            <div className={styles.welcomeCard}>
+              <div className={styles.welcomeMessage}>
                 Welcome back, <strong>{user.name}</strong>!
-              </p>
+              </div>
             </div>
 
             {/* Admin View Mode Toggle */}
-            <div className="container py-4">
-              <div className="mb-4">
-                <div className="btn-group" role="group">
-                  <button
-                    type="button"
-                    className={`btn btn-outline-primary ${
-                      viewMode === "associates" ? "active" : ""
-                    }`}
-                    onClick={() => setViewMode("associates")}
-                  >
-                    Sales Associates
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn btn-outline-primary ${
-                      viewMode === "quotes" ? "active" : ""
-                    }`}
-                    onClick={() => setViewMode("quotes")}
-                  >
-                    Quotes
-                  </button>
-                </div>
-              </div>
-              {/* Start Sales Associates View */}
-              {viewMode === "associates" ? (
-                <div>
-                  {
-                    <div>
-                      {/* Start Sales Associates Table */}
-                      <h2 className="mb-3">Our Sales Associates</h2>
-                      <table className="table table-striped">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Commission</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {associates.map((associate) => (
-                            <tr key={associate.id}>
-                              <td>{associate.id}</td>
-                              <td>{associate.name}</td>
-                              <td>{associate.email}</td>
-                              <td>
-                                $
-                                {Number(
-                                  associate.accumulated_commission
-                                ).toFixed(2)}
-                              </td>
-                              <td>
-                                <button
-                                  className="btn btn-sm btn-primary me-2"
-                                  onClick={() => handleEditAssociate(associate)}
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#editAssociateModal"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-danger"
-                                  onClick={() =>
-                                    handleDeleteAssociate(associate.id)
-                                  }
-                                >
-                                  Delete
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {/* End Sales Associates Table */}
-
-                      {/* Sales Associate Count */}
-                      <p className="text-muted mb-2">
-                        {associates.length} sales associate
-                        {associates.length === 1 ? "" : "s"} found
-                      </p>
-
-                      {/* Start Add New Associates */}
-                      <h4 className="mt-4">Add New Associate</h4>
-                      <form
-                        className="row g-2 align-items-center"
-                        onSubmit={handleAddAssociate}
-                      >
-                        <div className="col-auto">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Name"
-                            value={addForm.name}
-                            onChange={(e) =>
-                              setAddForm((f) => ({
-                                ...f,
-                                name: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="col-auto">
-                          <input
-                            type="email"
-                            className="form-control"
-                            placeholder="Email"
-                            value={addForm.email}
-                            onChange={(e) =>
-                              setAddForm((f) => ({
-                                ...f,
-                                email: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="col-auto">
-                          <input
-                            type="password"
-                            className="form-control"
-                            placeholder="Password"
-                            value={addForm.password}
-                            onChange={(e) =>
-                              setAddForm((f) => ({
-                                ...f,
-                                password: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="col-auto">
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Address"
-                            value={addForm.address}
-                            onChange={(e) =>
-                              setAddForm((f) => ({
-                                ...f,
-                                address: e.target.value,
-                              }))
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="col-auto">
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Commission"
-                            value={addForm.commission}
-                            onChange={(e) =>
-                              setAddForm((f) => ({
-                                ...f,
-                                commission: Number(e.target.value),
-                              }))
-                            }
-                            min={0}
-                            step={0.01}
-                          />
-                        </div>
-                        <div className="col-auto">
-                          <button type="submit" className="btn btn-success">
-                            Add new associate
-                          </button>
-                        </div>
-                        {addError && (
-                          <div className="col-12 text-danger mt-2">
-                            {addError}
-                          </div>
-                        )}
-                      </form>
-                      {/* End Add New Associates */}
-                    </div>
-                  }
-                  {/* End Sales Associates View */}
-                </div>
-              ) : (
-                <div>
-                  {/* Start Quotes View */}
-
-                  <div>
-                    <h2 className="mb-3">Quotes</h2>
-                    {/* Filter Controls */}
-                    <form className="row g-2 mb-3">
-                      <div className="col-auto">
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={quoteFilters.date_from}
-                          onChange={(e) =>
-                            setQuoteFilters((f) => ({
-                              ...f,
-                              date_from: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="col-auto">
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={quoteFilters.date_to}
-                          onChange={(e) =>
-                            setQuoteFilters((f) => ({
-                              ...f,
-                              date_to: e.target.value,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div className="col-auto">
-                        <select
-                          className="form-select"
-                          value={quoteFilters.status}
-                          onChange={(e) =>
-                            setQuoteFilters((f) => ({
-                              ...f,
-                              status: e.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Status</option>
-                          <option value="Draft">Draft</option>
-                          <option value="Finalized">Finalized</option>
-                        </select>
-                      </div>
-                      <div className="col-auto">
-                        <select
-                          className="form-select"
-                          value={quoteFilters.sales_associate_id}
-                          onChange={(e) =>
-                            setQuoteFilters((f) => ({
-                              ...f,
-                              sales_associate_id: e.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Associate</option>
-                          {associates.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="col-auto">
-                        <select
-                          className="form-select"
-                          value={quoteFilters.customer_id}
-                          onChange={(e) =>
-                            setQuoteFilters((f) => ({
-                              ...f,
-                              customer_id: e.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Customer</option>
-                          {customers.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </form>
-
-                    {/* Quotes Table */}
-                    <table className="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Date</th>
-                          <th>Sales Associate</th>
-                          <th>Customer</th>
-                          <th>Amount</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {quotes.map((quote) => (
-                          <tr key={quote.id}>
-                            <td>{quote.id}</td>
-                            <td>{quote.date_created?.slice(0, 10)}</td>
-                            <td>{quote.SalesAssociate?.name || ""}</td>
-                            <td>
-                              {customers.find((c) => c.id === quote.customer_id)
-                                ?.name || ""}
-                            </td>
-                            <td>
-                              $
-                              {quote.LineItems
-                                ? quote.LineItems.reduce(
-                                    (sum: number, item: any) =>
-                                      sum + Number(item.price),
-                                    0
-                                  ).toFixed(2)
-                                : "0.00"}
-                            </td>
-                            <td>{quote.status}</td>
-                            <td>
-                              <button
-                                className="btn btn-sm btn-info"
-                                onClick={() => handleViewQuote(quote.id)}
-                                data-bs-toggle="modal"
-                                data-bs-target="#viewQuoteModal"
-                              >
-                                View
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* End Quotes View */}
-                </div>
-              )}
+            <div className={styles.viewModeToggle}>
+              <button
+                type="button"
+                className={`${styles.viewModeButton} ${
+                  viewMode === "associates" ? styles.active : ""
+                }`}
+                onClick={() => setViewMode("associates")}
+              >
+                Sales Associates
+              </button>
+              <button
+                type="button"
+                className={`${styles.viewModeButton} ${
+                  viewMode === "quotes" ? styles.active : ""
+                }`}
+                onClick={() => setViewMode("quotes")}
+              >
+                Quotes
+              </button>
             </div>
+
+            {/* Start Sales Associates View */}
+            {viewMode === "associates" ? (
+              <div className={styles.card}>
+                {/* Start Sales Associates Table */}
+                <h2 className={styles.sectionTitle}>Our Sales Associates</h2>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Commission</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {associates.map((associate) => (
+                      <tr key={associate.id}>
+                        <td>{associate.id}</td>
+                        <td>{associate.name}</td>
+                        <td>{associate.email}</td>
+                        <td>
+                          $
+                          {Number(
+                            associate.accumulated_commission
+                          ).toFixed(2)}
+                        </td>
+                        <td>
+                          <button
+                            className={styles.actionButton}
+                            onClick={() => handleEditAssociate(associate)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className={styles.deleteButton}
+                            onClick={() =>
+                              handleDeleteAssociate(associate.id)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {/* End Sales Associates Table */}
+
+                {/* Sales Associate Count */}
+                <p className={styles.countInfo}>
+                  {associates.length} sales associate
+                  {associates.length === 1 ? "" : "s"} found
+                </p>
+
+                {/* Start Add New Associates */}
+                <div className={styles.formSection}>
+                  <h4 className={styles.formTitle}>Add New Associate</h4>
+                  <form
+                    className={styles.addForm}
+                    onSubmit={handleAddAssociate}
+                  >
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      placeholder="Name"
+                      value={addForm.name}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          name: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <input
+                      type="email"
+                      className={styles.formInput}
+                      placeholder="Email"
+                      value={addForm.email}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          email: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <input
+                      type="password"
+                      className={styles.formInput}
+                      placeholder="Password"
+                      value={addForm.password}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          password: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      placeholder="Address"
+                      value={addForm.address}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          address: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <input
+                      type="number"
+                      className={styles.formInput}
+                      placeholder="Commission"
+                      value={addForm.commission}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          commission: Number(e.target.value),
+                        }))
+                      }
+                      min={0}
+                      step={0.01}
+                    />
+                    <button type="submit" className={styles.submitButton}>
+                      Add new associate
+                    </button>
+                  </form>
+                  {addError && (
+                    <div className={styles.errorMessage}>
+                      {addError}
+                    </div>
+                  )}
+                </div>
+                {/* End Add New Associates */}
+              </div>
+            ) : (
+              <div className={styles.card}>
+                {/* Start Quotes View */}
+                <h2 className={styles.sectionTitle}>Quotes</h2>
+                
+                {/* Filter Controls */}
+                <div className={styles.filterForm}>
+                  <input
+                    type="date"
+                    className={styles.formInput}
+                    value={quoteFilters.date_from}
+                    onChange={(e) =>
+                      setQuoteFilters((f) => ({
+                        ...f,
+                        date_from: e.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    type="date"
+                    className={styles.formInput}
+                    value={quoteFilters.date_to}
+                    onChange={(e) =>
+                      setQuoteFilters((f) => ({
+                        ...f,
+                        date_to: e.target.value,
+                      }))
+                    }
+                  />
+                  <select
+                    className={styles.select}
+                    value={quoteFilters.status}
+                    onChange={(e) =>
+                      setQuoteFilters((f) => ({
+                        ...f,
+                        status: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Status</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Finalized">Finalized</option>
+                  </select>
+                  <select
+                    className={styles.select}
+                    value={quoteFilters.sales_associate_id}
+                    onChange={(e) =>
+                      setQuoteFilters((f) => ({
+                        ...f,
+                        sales_associate_id: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Associate</option>
+                    {associates.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className={styles.select}
+                    value={quoteFilters.customer_id}
+                    onChange={(e) =>
+                      setQuoteFilters((f) => ({
+                        ...f,
+                        customer_id: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Customer</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Quotes Table */}
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Date</th>
+                      <th>Sales Associate</th>
+                      <th>Customer</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quotes.map((quote) => (
+                      <tr key={quote.id}>
+                        <td>{quote.id}</td>
+                        <td>{quote.date_created?.slice(0, 10)}</td>
+                        <td>{quote.SalesAssociate?.name || ""}</td>
+                        <td>
+                          {customers.find((c) => c.id === quote.customer_id)
+                            ?.name || ""}
+                        </td>
+                        <td>
+                          $
+                          {quote.LineItems
+                            ? quote.LineItems.reduce(
+                                (sum: number, item: any) =>
+                                  sum + Number(item.price),
+                                0
+                              ).toFixed(2)
+                            : "0.00"}
+                        </td>
+                        <td>{quote.status}</td>
+                        <td>
+                          <button
+                            className={styles.actionButton}
+                            onClick={() => handleViewQuote(quote.id)}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {/* End Quotes View */}
+              </div>
+            )}
             {/* End Admin View Mode Toggle */}
           </div>
         )}
       </div>
 
       {/* Edit Associate Modal */}
-      <div
-        className={`modal fade${editModalOpen ? " show d-block" : ""}`}
-        id="editAssociateModal"
-        tabIndex={-1}
-        aria-labelledby="editAssociateModalLabel"
-        aria-hidden={!editModalOpen}
-        style={editModalOpen ? { background: "rgba(0,0,0,0.5)" } : {}}
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
+      {editModalOpen && (
+        <div className={styles.modal}>
+          <div className={styles.modalDialog}>
             <form onSubmit={handleEditAssociateSubmit}>
-              <div className="modal-header">
-                <h1 className="modal-title fs-5" id="editAssociateModalLabel">
+              <div className={styles.modalHeader}>
+                <h1 className={styles.modalTitle}>
                   Edit Sales Associate
                 </h1>
                 <button
                   type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
+                  className={styles.closeButton}
                   onClick={() => setEditModalOpen(false)}
-                ></button>
+                >
+                  ×
+                </button>
               </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label htmlFor="associateName" className="form-label">
+              <div className={styles.modalBody}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
                     Name
                   </label>
                   <input
                     type="text"
-                    className="form-control"
-                    id="associateName"
+                    className={styles.formInput}
                     name="name"
                     value={editForm.name}
                     onChange={handleEditFormChange}
                     required
                   />
                 </div>
-                <div className="mb-3">
-                  <label htmlFor="associateAddress" className="form-label">
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
                     Address
                   </label>
                   <input
                     type="text"
-                    className="form-control"
-                    id="associateAddress"
+                    className={styles.formInput}
                     name="address"
                     value={editForm.address}
                     onChange={handleEditFormChange}
                     required
                   />
                 </div>
-                <div className="mb-3">
-                  <label htmlFor="associatePassword" className="form-label">
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
                     Password
                   </label>
                   <input
                     type="password"
-                    className="form-control"
-                    id="associatePassword"
+                    className={styles.formInput}
                     name="password"
                     value={editForm.password}
                     onChange={handleEditFormChange}
                     placeholder="Leave blank to keep current password"
                   />
                 </div>
-                <div className="mb-3">
-                  <label htmlFor="associateCommission" className="form-label">
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>
                     Commission
                   </label>
                   <input
                     type="number"
-                    className="form-control"
-                    id="associateCommission"
+                    className={styles.formInput}
                     name="commission"
                     value={editForm.commission}
                     onChange={handleEditFormChange}
@@ -671,91 +632,83 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="modal-footer">
+              <div className={styles.modalFooter}>
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  data-bs-dismiss="modal"
+                  className={styles.cancelButton}
                   onClick={() => setEditModalOpen(false)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className={styles.submitButton}>
                   Save Changes
                 </button>
               </div>
             </form>
           </div>
         </div>
-      </div>
+      )}
       {/* End Edit Associate Modal */}
 
       {/* Start View Quote Modal */}
-      <div
-        className={`modal fade${viewQuoteModalOpen ? " show d-block" : ""}`}
-        id="viewQuoteModal"
-        tabIndex={-1}
-        aria-labelledby="viewQuoteModalLabel"
-        aria-hidden={!viewQuoteModalOpen}
-        style={viewQuoteModalOpen ? { background: "rgba(0,0,0,0.5)" } : {}}
-      >
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="viewQuoteModalLabel">
+      {viewQuoteModalOpen && (
+        <div className={styles.modal}>
+          <div className={styles.modalDialog}>
+            <div className={styles.modalHeader}>
+              <h1 className={styles.modalTitle}>
                 Quote Details
               </h1>
               <button
                 type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
+                className={styles.closeButton}
                 onClick={() => setViewQuoteModalOpen(false)}
-              ></button>
+              >
+                ×
+              </button>
             </div>
-            <div className="modal-body">
+            <div className={styles.modalBody}>
               {selectedQuote ? (
                 <div>
-                  <div className="mb-2">
-                    <strong>Company Name:</strong>{" "}
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Company Name:</span>{" "}
                     {selectedQuote.customer_name || ""}
                   </div>
-                  <div className="mb-2">
-                    <strong>Address:</strong> {selectedQuote.address || ""}
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Address:</span> {selectedQuote.address || ""}
                   </div>
-                  <div className="mb-2">
-                    <strong>Email:</strong> {selectedQuote.email || ""}
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Email:</span> {selectedQuote.email || ""}
                   </div>
-                  <div className="mb-2">
-                    <strong>Sales Associate:</strong>{" "}
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Sales Associate:</span>{" "}
                     {selectedQuote.SalesAssociate?.name || ""}
                   </div>
-                  <div className="mb-2">
-                    <strong>Date:</strong> {selectedQuote.date_created}
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Date:</span> {selectedQuote.date_created}
                   </div>
-                  <div className="mb-2">
-                    <strong>Status:</strong> {selectedQuote.status}
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Status:</span> {selectedQuote.status}
                   </div>
-                  <div className="mb-2">
-                    <strong>Line Items:</strong>
-                    <ul>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Line Items:</span>
+                    <div className={styles.detailList}>
                       {selectedQuote.LineItems?.map((item: any) => (
-                        <li key={item.id}>
+                        <div key={item.id} className={styles.detailListItem}>
                           {item.description} - ${item.price}
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                  <div className="mb-2">
-                    <strong>Secret Notes:</strong>
-                    <ul>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Secret Notes:</span>
+                    <div className={styles.detailList}>
                       {selectedQuote.SecretNotes?.map((note: any) => (
-                        <li key={note.id}>{note.content}</li>
+                        <div key={note.id} className={styles.detailListItem}>{note.content}</div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
-                  <div className="mb-2">
-                    <strong>Total Cost:</strong> $
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Total Cost:</span> $
                     {selectedQuote.LineItems
                       ? selectedQuote.LineItems.reduce(
                           (sum: number, item: any) => sum + Number(item.price),
@@ -768,11 +721,10 @@ export default function Home() {
                 <div>Loading...</div>
               )}
             </div>
-            <div className="modal-footer">
+            <div className={styles.modalFooter}>
               <button
                 type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
+                className={styles.cancelButton}
                 onClick={() => setViewQuoteModalOpen(false)}
               >
                 Close
@@ -780,7 +732,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      )}
       {/* End View Quote Modal */}
     </div>
   );
