@@ -295,16 +295,14 @@
     text-align: center;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
     .content {
         padding: 1rem;
     }
-    
     .title {
         font-size: 2rem;
     }
-    
+
     .dashboardGrid {
         grid-template-columns: 1fr;
     }
@@ -318,7 +316,6 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
     .quoteItem {
         flex-direction: column;
         align-items: stretch;
@@ -326,23 +323,18 @@
     }
 }
 
-/* Modal expansion styles */
 .dashboardGrid.modalOpen {
     position: relative;
     z-index: 1;
 }
-
 .dashboardGrid.modalOpen .card {
     position: relative;
     z-index: 2;
 }
-
-/* When modal is open, make the grid single column to allow full width expansion */
 .dashboardGrid.modalOpen {
     grid-template-columns: 1fr;
     max-width: 100%;
 }
-
 .dashboardGrid.modalOpen .card {
     max-width: 100%;
 }

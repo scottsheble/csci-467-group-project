@@ -203,7 +203,6 @@
     }
 }
 
-/* Accessibility improvements */
 .input:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;
@@ -214,7 +213,6 @@
     outline-offset: 2px;
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
     .loginCard {
         border: 2px solid var(--text-color);
@@ -223,7 +221,6 @@
     .input {
         border: 1px solid var(--text-color);
     }
-    
     .input:focus {
         border-width: 2px;
     }
