@@ -3,6 +3,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Background from '@/components/background';
+import styles from '@/styles/quote-manager.module.css';
 
 interface Quote {
     id: number;
@@ -122,15 +124,15 @@ export default function QuoteManagerPage() {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'DraftQuote':
-                return 'bg-gray-100 text-gray-800';
+                return styles.statusDraft;
             case 'FinalizedUnresolvedQuote':
-                return 'bg-yellow-100 text-yellow-800';
+                return styles.statusFinalized;
             case 'SanctionedQuote':
-                return 'bg-green-100 text-green-800';
+                return styles.statusSanctioned;
             case 'UnprocessedPurchaseOrder':
-                return 'bg-blue-100 text-blue-800';
+                return styles.statusPurchaseOrder;
             default:
-                return 'bg-gray-100 text-gray-800';
+                return styles.statusDraft;
         }
     };
 
@@ -167,24 +169,34 @@ export default function QuoteManagerPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-lg">Loading...</div>
+            <div className={styles.container}>
+                <Background />
+                <div className={styles.content}>
+                    <div className={styles.welcomeCard}>
+                        <div className={styles.loadingMessage}>Loading...</div>
+                    </div>
+                </div>
             </div>
         );
     }
 
     if (!user) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-                    <p className="mb-4">Please log in to access quote management.</p>
-                    <Link 
-                        href="/login"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
-                    >
-                        Login
-                    </Link>
+            <div className={styles.container}>
+                <Background />
+                <div className={styles.content}>
+                    <div className={styles.header}>
+                        <h1 className={styles.title}>Quote Management</h1>
+                        <p className={styles.subtitle}>Access Denied</p>
+                    </div>
+                    <div className={styles.welcomeCard}>
+                        <div className={styles.loginPrompt}>
+                            <p>Please log in to access quote management.</p>
+                            <Link href="/login" className={styles.loginLink}>
+                                Login to Get Started
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -192,110 +204,114 @@ export default function QuoteManagerPage() {
 
     if (!user.roles.is_quote_manager && !user.roles.is_admin) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-                    <p>You don't have permission to access quote management.</p>
+            <div className={styles.container}>
+                <Background />
+                <div className={styles.content}>
+                    <div className={styles.header}>
+                        <h1 className={styles.title}>Quote Management</h1>
+                        <p className={styles.subtitle}>Access Denied</p>
+                    </div>
+                    <div className={styles.welcomeCard}>
+                        <div className={styles.loginPrompt}>
+                            <p>You don't have permission to access quote management.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Quote Management</h1>
-                <p className="text-gray-600">Review and sanction finalized quotes</p>
-            </div>
-
-            {error && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-                    <p className="text-red-800">{error}</p>
+        <div className={styles.container}>
+            <Background />
+            <div className={styles.content}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Quote Management</h1>
+                    <p className={styles.subtitle}>Review and sanction finalized quotes</p>
                 </div>
-            )}
 
-            {loading ? (
-                <div className="text-center py-8">
-                    <div className="text-lg">Loading quotes...</div>
-                </div>
-            ) : quotes.length === 0 ? (
-                <div className="bg-gray-50 border border-gray-200 rounded-md p-8 text-center">
-                    <p className="text-gray-700">No quotes found.</p>
-                </div>
-            ) : (
-                <>
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                        <ul className="divide-y divide-gray-200">
-                            {quotes.map((quote) => (
-                                <li key={quote.id} className="px-6 py-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-lg font-medium text-gray-900">
-                                                    Quote #{quote.id}
-                                                </h3>
-                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(quote.status)}`}>
-                                                    {getStatusLabel(quote.status)}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                                                <div>
-                                                    <span className="font-medium">Customer Email:</span> {quote.email}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Customer ID:</span> {quote.customer_id}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Sales Associate:</span> {quote.SalesAssociate?.name || 'Unknown'}
-                                                </div>
-                                            </div>
-
-                                            {quote.LineItems && quote.LineItems.length > 0 && (
-                                                <div className="mb-3">
-                                                    <h4 className="font-medium text-gray-900 mb-2">Line Items:</h4>
-                                                    <ul className="space-y-1">
-                                                        {quote.LineItems.map((item) => (
-                                                            <li key={item.id} className="text-sm text-gray-600">
-                                                                {item.description}: ${Number(item.price).toFixed(2)}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-
-                                            <div className="text-sm">
-                                                <span className="font-medium">Total:</span> ${calculateTotal(quote).toFixed(2)}
-                                            </div>
-                                        </div>
-
-                                        <div className="ml-6">
-                                            {quote.status === 'FinalizedUnresolvedQuote' && (
-                                                <button
-                                                    onClick={() => sanctionQuote(quote.id)}
-                                                    disabled={updatingQuote === quote.id}
-                                                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
-                                                >
-                                                    {updatingQuote === quote.id ? 'Sanctioning...' : 'Sanction Quote'}
-                                                </button>
-                                            )}
-                                            {quote.status === 'DraftQuote' && (
-                                                <button
-                                                    onClick={() => finalizeQuote(quote.id)}
-                                                    disabled={updatingQuote === quote.id}
-                                                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm font-medium"
-                                                >
-                                                    {updatingQuote === quote.id ? 'Finalizing...' : 'Finalize Quote'}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                {error && (
+                    <div className={styles.errorMessage}>
+                        <p>{error}</p>
                     </div>
-                </>
-            )}
+                )}
+
+                {loading ? (
+                    <div className={styles.welcomeCard}>
+                        <div className={styles.loadingMessage}>Loading quotes...</div>
+                    </div>
+                ) : quotes.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        <p>No quotes found.</p>
+                    </div>
+                ) : (
+                    <div className={styles.quotesContainer}>
+                        {quotes.map((quote) => (
+                            <div key={quote.id} className={styles.quoteItem}>
+                                <div className={styles.quoteHeader}>
+                                    <h3 className={styles.quoteTitle}>
+                                        Quote #{quote.id}
+                                    </h3>
+                                    <span className={`${styles.statusBadge} ${getStatusColor(quote.status)}`}>
+                                        {getStatusLabel(quote.status)}
+                                    </span>
+                                </div>
+                                
+                                <div className={styles.quoteDetails}>
+                                    <div className={styles.detailItem}>
+                                        <span className={styles.detailLabel}>Customer Email:</span>
+                                        {quote.email}
+                                    </div>
+                                    <div className={styles.detailItem}>
+                                        <span className={styles.detailLabel}>Customer ID:</span>
+                                        {quote.customer_id}
+                                    </div>
+                                    <div className={styles.detailItem}>
+                                        <span className={styles.detailLabel}>Sales Associate:</span>
+                                        {quote.SalesAssociate?.name || 'Unknown'}
+                                    </div>
+                                </div>
+
+                                {quote.LineItems && quote.LineItems.length > 0 && (
+                                    <div className={styles.lineItemsSection}>
+                                        <h4 className={styles.lineItemsTitle}>Line Items:</h4>
+                                        {quote.LineItems.map((item) => (
+                                            <div key={item.id} className={styles.lineItem}>
+                                                {item.description}: ${Number(item.price).toFixed(2)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className={styles.totalAmount}>
+                                    Total: ${calculateTotal(quote).toFixed(2)}
+                                </div>
+
+                                <div className={styles.actionButtons}>
+                                    {quote.status === 'FinalizedUnresolvedQuote' && (
+                                        <button
+                                            onClick={() => sanctionQuote(quote.id)}
+                                            disabled={updatingQuote === quote.id}
+                                            className={styles.primaryButton}
+                                        >
+                                            {updatingQuote === quote.id ? 'Sanctioning...' : 'Sanction Quote'}
+                                        </button>
+                                    )}
+                                    {quote.status === 'DraftQuote' && (
+                                        <button
+                                            onClick={() => finalizeQuote(quote.id)}
+                                            disabled={updatingQuote === quote.id}
+                                            className={styles.secondaryButton}
+                                        >
+                                            {updatingQuote === quote.id ? 'Finalizing...' : 'Finalize Quote'}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

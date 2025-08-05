@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Background from '@/components/background';
+import styles from '@/styles/purchase-order-manager.module.css';
 
 type Quote = {
   id: number;
@@ -86,80 +88,107 @@ export default function PurchaseOrderManager() {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Quote Purchase Manager</h1>
-
-      {error && <p className="text-red-600 mb-4">{error}</p>}
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        {}
-        <div className="w-full lg:w-1/2">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold">Sanctioned Quotes</h2>
-            <button
-              className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-              onClick={fetchQuotes}
-            >
-              Refresh Quotes
-            </button>
-          </div>
-
-          {quotes.length === 0 ? (
-            <p className="text-gray-600 italic">No sanctioned quotes available.</p>
-          ) : (
-            <ul className="space-y-2">
-              {quotes.map((quote) => (
-                <li key={quote.id} className="p-3 border rounded shadow-sm">
-                  <label>
-                    <input
-                      type="radio"
-                      name="quote"
-                      value={quote.id}
-                      onChange={() => setSelectedQuote(quote)}
-                      className="mr-2"
-                    />
-                    Quote #{quote.id} | Customer #{quote.customer_id} | $
-                    {quote.total.toFixed(2)}
-                  </label>
-                </li>
-              ))}
-            </ul>
-          )}
+    <div className={styles.container}>
+      <Background />
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Purchase Order Management</h1>
+          <p className={styles.subtitle}>Process sanctioned quotes through the Blitz system</p>
         </div>
 
-        {}
-        {selectedQuote && (
-          <div className="w-full lg:w-1/2">
-            <h2 className="text-lg font-semibold mb-2">
-              Submit Quote #{selectedQuote.id} to Blitz
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block font-medium mb-1">Final Discount ($):</label>
-                <input
-                  type="number"
-                  value={discount}
-                  min={0}
-                  max={selectedQuote.total}
-                  onChange={(e) => setDiscount(parseFloat(e.target.value))}
-                  className="w-full border px-2 py-1"
-                />
-              </div>
-
-              <p>
-                <strong>Final Total:</strong> $
-                {(selectedQuote.total - discount).toFixed(2)}
-              </p>
-
-              <button
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                onClick={handleSubmit}
-              >
-                Submit to Blitz
-              </button>
-            </div>
+        {error && (
+          <div className={styles.errorMessage}>
+            <p>{error}</p>
           </div>
         )}
+
+        <div className={`${styles.mainGrid} ${!selectedQuote ? styles.singleColumn : ''}`}>
+          {/* Sanctioned Quotes Section */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>Sanctioned Quotes</h2>
+              <button
+                className={styles.refreshButton}
+                onClick={fetchQuotes}
+              >
+                Refresh Quotes
+              </button>
+            </div>
+
+            {quotes.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>No sanctioned quotes available.</p>
+              </div>
+            ) : (
+              <div className={styles.quotesList}>
+                {quotes.map((quote) => (
+                  <div 
+                    key={quote.id} 
+                    className={`${styles.quoteItem} ${selectedQuote?.id === quote.id ? styles.selected : ''}`}
+                    onClick={() => setSelectedQuote(quote)}
+                  >
+                    <label className={styles.quoteLabel}>
+                      <input
+                        type="radio"
+                        name="quote"
+                        value={quote.id}
+                        checked={selectedQuote?.id === quote.id}
+                        onChange={() => setSelectedQuote(quote)}
+                        className={styles.radioInput}
+                      />
+                      <div className={styles.quoteDetails}>
+                        <span className={styles.quoteNumber}>Quote #{quote.id}</span>
+                        <span className={styles.customerInfo}> | Customer #{quote.customer_id}</span>
+                        <span className={styles.totalAmount}> | ${quote.total.toFixed(2)}</span>
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Quote Submission Section */}
+          {selectedQuote && (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>
+                  Submit Quote #{selectedQuote.id} to Blitz
+                </h2>
+              </div>
+
+              <div className={styles.submissionForm}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Final Discount ($):</label>
+                  <input
+                    type="number"
+                    value={discount}
+                    min={0}
+                    max={selectedQuote.total}
+                    onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                    className={styles.formInput}
+                    placeholder="Enter discount amount"
+                  />
+                </div>
+
+                <div className={styles.finalTotal}>
+                  <span className={styles.finalTotalLabel}>Final Total:</span>
+                  <span className={styles.finalTotalAmount}>
+                    ${(selectedQuote.total - discount).toFixed(2)}
+                  </span>
+                </div>
+
+                <button
+                  className={styles.submitButton}
+                  onClick={handleSubmit}
+                  disabled={!selectedQuote}
+                >
+                  Submit to Blitz System
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

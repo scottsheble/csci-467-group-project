@@ -1,0 +1,358 @@
+/* Quote Manager page styles */
+.container {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text-color), var(--text-accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+.welcomeCard {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.3),
+        0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcomeCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--text-accent-color));
+}
+
+.loginPrompt {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loginLink {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-accent-color) 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(97, 137, 47, 0.3);
+}
+
+.loginLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(97, 137, 47, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+.errorMessage {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.loadingMessage {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-color);
+    font-size: 1.1rem;
+}
+
+.emptyState {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-top: 2rem;
+}
+
+.quotesContainer {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.3),
+        0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+.quotesContainer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--text-accent-color));
+}
+
+.quoteItem {
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.quoteItem:last-child {
+    border-bottom: none;
+}
+
+.quoteItem:hover {
+    background: rgba(97, 137, 47, 0.1);
+    border-color: var(--accent-color);
+}
+
+.quoteHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.quoteTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-accent-color);
+    margin: 0;
+}
+
+.statusBadge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statusDraft {
+    background: rgba(156, 163, 175, 0.3);
+    color: #e5e7eb;
+    border: 1px solid rgba(156, 163, 175, 0.5);
+}
+
+.statusFinalized {
+    background: rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.5);
+}
+
+.statusSanctioned {
+    background: rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.statusPurchaseOrder {
+    background: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.5);
+}
+
+.quoteDetails {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detailItem {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.detailLabel {
+    font-weight: 600;
+    color: var(--text-accent-color);
+    margin-right: 0.5rem;
+}
+
+.lineItemsSection {
+    margin-bottom: 1rem;
+}
+
+.lineItemsTitle {
+    font-weight: 600;
+    color: var(--text-accent-color);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.lineItem {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.lineItem::before {
+    content: '•';
+    color: var(--accent-color);
+    position: absolute;
+    left: 0;
+}
+
+.totalAmount {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-accent-color);
+    text-align: right;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.actionButtons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.primaryButton {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-accent-color) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(97, 137, 47, 0.3);
+    font-size: 0.9rem;
+}
+
+.primaryButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(97, 137, 47, 0.4);
+}
+
+.primaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #666 0%, #999 100%);
+}
+
+.secondaryButton {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    font-size: 0.9rem;
+}
+
+.secondaryButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.secondaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #666 0%, #999 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .quoteHeader {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .quoteDetails {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .actionButtons {
+        justify-content: stretch;
+    }
+    
+    .primaryButton,
+    .secondaryButton {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .totalAmount {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .actionButtons {
+        flex-direction: column;
+    }
+    
+    .primaryButton,
+    .secondaryButton {
+        width: 100%;
+    }
+}

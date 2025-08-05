@@ -1,0 +1,303 @@
+/* Purchase Order Manager page styles */
+.container {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text-color), var(--text-accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+.errorMessage {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.mainGrid.singleColumn {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.3),
+        0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--text-accent-color));
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.cardTitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-accent-color);
+    margin: 0;
+}
+
+.refreshButton {
+    background: transparent;
+    color: var(--text-color);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.refreshButton:hover {
+    border-color: var(--accent-color);
+    background: rgba(97, 137, 47, 0.1);
+}
+
+.emptyState {
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+    padding: 2rem;
+    font-style: italic;
+}
+
+.quotesList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.quoteItem {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quoteItem:hover {
+    border-color: var(--accent-color);
+    background: rgba(97, 137, 47, 0.1);
+}
+
+.quoteItem.selected {
+    border-color: var(--accent-color);
+    background: rgba(97, 137, 47, 0.2);
+    box-shadow: 0 0 0 2px rgba(97, 137, 47, 0.3);
+}
+
+.quoteLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.radioInput {
+    accent-color: var(--accent-color);
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.quoteDetails {
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.quoteNumber {
+    color: var(--text-accent-color);
+    font-weight: 600;
+}
+
+.customerInfo {
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+.totalAmount {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.submissionForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formLabel {
+    font-weight: 600;
+    color: var(--text-accent-color);
+    font-size: 1rem;
+}
+
+.formInput {
+    padding: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.formInput:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.finalTotal {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.finalTotalLabel {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.finalTotalAmount {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-left: 0.5rem;
+}
+
+.submitButton {
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--text-accent-color) 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(97, 137, 47, 0.3);
+    font-size: 1.125rem;
+}
+
+.submitButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(97, 137, 47, 0.4);
+}
+
+.submitButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #666 0%, #999 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .mainGrid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .cardHeader {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .refreshButton {
+        align-self: stretch;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .quoteLabel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .formInput,
+    .submitButton {
+        font-size: 1rem;
+    }
+}
