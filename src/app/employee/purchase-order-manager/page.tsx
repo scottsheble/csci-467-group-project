@@ -19,19 +19,28 @@ export default function PurchaseOrderManager() {
   const [discount, setDiscount] = useState<number>(0);
   const [error, setError] = useState('');
 
-  const fetchQuotes = async () => {
-    try {
-      const res = await fetch('/api/quotes/get?status=SanctionedQuote');
-      const data = await res.json();
-      const patched = data.map((q: any) => ({
+const fetchQuotes = async () => {
+  try {
+    const res = await fetch('/api/quotes/get?status=SanctionedQuote');
+    const data = await res.json();
+
+    const patched = data.map((q: any) => {
+      const total = Array.isArray(q.LineItems)
+        ? q.LineItems.reduce((sum: number, item: any) => sum + Number(item.price || 0), 0)
+        : 0;
+
+      return {
         ...q,
-        total: q.total ?? 123.45,
-      }));
-      setQuotes(patched);
-    } catch (err) {
-      setError('Failed to load quotes.');
-    }
-  };
+        total,
+      };
+    });
+
+    setQuotes(patched);
+  } catch (err) {
+    console.error(err);
+    setError('Failed to load quotes.');
+  }
+};
 
   useEffect(() => {
     fetchQuotes();
