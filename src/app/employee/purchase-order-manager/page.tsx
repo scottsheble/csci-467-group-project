@@ -88,8 +88,15 @@ const fetchQuotes = async () => {
           }),
         });
 
-        // Refresh quotes after successful order
-        fetchQuotes();
+        //patch post processing
+        await fetch(`/api/quotes/edit?quote_id=${selectedQuote.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'UnprocessedPurchaseOrder' }),
+      });
+
+      // Refresh quotes after successful order
+      fetchQuotes();
       }
     } catch (err) {
       setError('Error sending request to Blitz system.');
