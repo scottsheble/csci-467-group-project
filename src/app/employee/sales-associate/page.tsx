@@ -440,44 +440,6 @@ export default function Home() {
                             </button>
                           </div>
 
-                          <div className="mb-2 flex items-center gap-2">
-                            <label className="block font-medium">
-                              Discount:
-                            </label>
-                            <input
-                              type="number"
-                              className="form-input w-24"
-                              value={discountValue}
-                              min="0"
-                              onChange={(e) =>
-                                setDiscountValue(Number(e.target.value))
-                              }
-                            />
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={() => {}}
-                            >
-                              Apply
-                            </button>
-                            <label className="ml-2">
-                              <input
-                                type="radio"
-                                checked={discountType === "percent"}
-                                onChange={() => setDiscountType("percent")}
-                              />{" "}
-                              percent
-                            </label>
-                            <label className="ml-2">
-                              <input
-                                type="radio"
-                                checked={discountType === "amount"}
-                                onChange={() => setDiscountType("amount")}
-                              />{" "}
-                              amount
-                            </label>
-                          </div>
-
                           <div className="mb-2">
                             <label className="block font-medium">Amount:</label>
                             {(() => {
@@ -485,11 +447,7 @@ export default function Home() {
                                 (sum, item) => sum + Number(item.price),
                                 0
                               );
-                              const discountedCost =
-                                discountType === "percent"
-                                  ? totalCost * (1 - discountValue / 100)
-                                  : Math.max(totalCost - discountValue, 0);
-                              return <span>${discountedCost.toFixed(2)}</span>;
+                              return <span>${totalCost.toFixed(2)}</span>;
                             })()}
                           </div>
 
@@ -533,7 +491,7 @@ export default function Home() {
                       {quotes.length === 0 ? (
                         <li className="list-group-item">No quotes found</li>
                       ) : (
-                        [...quotes].reverse().map((quote, idx) => {
+                        [...quotes].map((quote, idx) => {
                           const customer = customers.find(
                             (c) => c.id === quote.customer_id
                           );
@@ -544,14 +502,6 @@ export default function Home() {
                                 0
                               )
                             : 0;
-                          const discountedCost =
-                            quote.final_discount_type === "percent"
-                              ? totalCost *
-                                (1 - (quote.final_discount_value || 0) / 100)
-                              : Math.max(
-                                  totalCost - (quote.final_discount_value || 0),
-                                  0
-                                );
                           // Reverse numbering
                           const quoteNumber = quotes.length - idx;
                           return (
@@ -565,8 +515,7 @@ export default function Home() {
                               Customer:{" "}
                               <strong>{customer?.name || "Unknown"}</strong>
                               {" | "}
-                              Cost:{" "}
-                              <strong>${discountedCost.toFixed(2)}</strong>
+                              Cost: <strong>${totalCost.toFixed(2)}</strong>
                               <button
                                 className="btn btn-sm btn-outline-primary ml-2"
                                 onClick={() => handleEditQuote(quote)}
@@ -737,34 +686,7 @@ export default function Home() {
                 Add New Note
               </button>
             </div>
-            {/* Final Discount */}
-            <div className="mb-2 flex items-center gap-2">
-              <label className="block font-medium">Final Discount:</label>
-              <input
-                type="number"
-                className="form-input w-24"
-                value={editDiscountValue}
-                min="0"
-                onChange={(e) => setEditDiscountValue(Number(e.target.value))}
-              />
-              <label className="ml-2">
-                <input
-                  type="radio"
-                  checked={editDiscountType === "percent"}
-                  onChange={() => setEditDiscountType("percent")}
-                />{" "}
-                percent
-              </label>
-              <label className="ml-2">
-                <input
-                  type="radio"
-                  checked={editDiscountType === "amount"}
-                  onChange={() => setEditDiscountType("amount")}
-                />{" "}
-                amount
-              </label>
-            </div>
-            {/* Dynamic Cost */}
+            {/* Final Cost */}
             <div className="mb-2">
               <label className="block font-medium">Amount:</label>
               {(() => {
@@ -772,11 +694,7 @@ export default function Home() {
                   (sum, item) => sum + Number(item.price),
                   0
                 );
-                const discountedCost =
-                  editDiscountType === "percent"
-                    ? totalCost * (1 - editDiscountValue / 100)
-                    : Math.max(totalCost - editDiscountValue, 0);
-                return <span>${discountedCost.toFixed(2)}</span>;
+                return <span>${totalCost.toFixed(2)}</span>;
               })()}
             </div>
             {/* Finalize Button */}
@@ -799,8 +717,8 @@ export default function Home() {
                     body: JSON.stringify({
                       lineItems: editLineItems, // Array of { description, price }
                       secretNotes: editSecretNotes, // Array of strings
-                      final_discount_value: editDiscountValue,
-                      final_discount_type: editDiscountType,
+                      final_discount_value: 0,
+                      final_discount_type: "amount", // or "percent"
                       email: editQuote.email, // Customer email
                       customer_id: editQuote.customer_id, // Customer ID
                       status: "FinalizedUnresolvedQuote",
@@ -818,43 +736,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-      {/*      {user && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Customer Directory
-          </h2>
-          {error ? (
-            <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <p className="text-red-800">{error}</p>
-            </div>
-          ) : customers.length > 0 ? (
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <ul className="divide-y divide-gray-200">
-                {customers.map((customer) => (
-                  <li key={customer.id} className="px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {customer.name}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          ID: {customer.id}
-                        </p>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-              <p className="text-gray-700">No customers found.</p>
-            </div>
-          )}
-        </div>
-      )}
-		*/}
     </div>
   );
 }
