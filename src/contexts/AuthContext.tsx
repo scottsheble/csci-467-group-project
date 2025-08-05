@@ -66,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (response.ok) {
                 const data = await response.json();
                 setUser(data.user);
+                // Alternative: Re-check auth status to ensure consistency
+                await checkAuth();
                 return true;
             }
             return false;
