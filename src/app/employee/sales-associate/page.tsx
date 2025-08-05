@@ -49,10 +49,15 @@ export default function SalesAssociatePage() {
   // Async function to handle refreshing quotes
   async function refreshQuotes() {
     try {
-      const quotesResponse = await fetch("/api/quotes/get?status=DraftQuote");
+      // Fetch both draft and finalized quotes for sales associates
+      const quotesResponse = await fetch("/api/quotes/get");
       if (quotesResponse.ok) {
         const quotesData = await quotesResponse.json();
-        setQuotes(Array.isArray(quotesData) ? quotesData : []);
+        // Filter to only show draft quotes (sales associates can only edit draft quotes)
+        const draftQuotes = Array.isArray(quotesData)
+          ? quotesData.filter((quote) => quote.status === "DraftQuote")
+          : [];
+        setQuotes(draftQuotes);
       }
     } catch (error) {
       console.error("Failed to fetch quotes:", error);
@@ -73,16 +78,16 @@ export default function SalesAssociatePage() {
   }
 
   return (
-    <div className={`${styles.container} ${isModalOpen ? styles.modalOpen : ''}`}>
+    <div
+      className={`${styles.container} ${isModalOpen ? styles.modalOpen : ""}`}
+    >
       <Background />
       <div className={styles.content}>
         <div className={styles.header}>
-          <h1 className={styles.title}>
-            Welcome to Quote Management System
-          </h1>
+          <h1 className={styles.title}>Welcome to Quote Management System</h1>
           <p className={styles.subtitle}>
-            Streamline your sales quote process with our comprehensive management
-            platform
+            Streamline your sales quote process with our comprehensive
+            management platform
           </p>
         </div>
 
@@ -110,7 +115,11 @@ export default function SalesAssociatePage() {
             )}
 
             {user.roles.is_sales_associate && (
-              <div className={`${styles.dashboardGrid} ${isModalOpen ? styles.modalOpen : ''}`}>
+              <div
+                className={`${styles.dashboardGrid} ${
+                  isModalOpen ? styles.modalOpen : ""
+                }`}
+              >
                 <QuoteCreationSection
                   customers={customers}
                   onQuoteCreated={refreshQuotes}

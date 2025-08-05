@@ -32,7 +32,9 @@ export default function QuoteCreationSection({
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [secretNotes, setSecretNotes] = useState<string[]>([""]);
   const [discountValue, setDiscountValue] = useState<number>(0);
-  const [discountType, setDiscountType] = useState<"percent" | "amount">("percent");
+  const [discountType, setDiscountType] = useState<"percent" | "amount">(
+    "percent"
+  );
 
   function handleOpenModal() {
     const customer = customers.find((c) => String(c.id) === selectedCustomer);
@@ -51,22 +53,68 @@ export default function QuoteCreationSection({
   async function handleCreateQuote(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const res = await fetch("/api/quotes/create", {
+      // Step 1: Create the quote
+      const quoteRes = await fetch("/api/quotes/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: quoteForm.email,
           customer_id: Number(selectedCustomer),
-          lineItems,
-          secretNotes,
-          discountValue,
-          discountType,
+          final_discount_value: discountValue,
+          final_discount_type:
+            discountType === "percent" ? "percentage" : "amount",
         }),
         credentials: "include",
       });
-      
-      if (!res.ok) throw new Error("Failed to create quote");
-      
+
+      if (!quoteRes.ok) throw new Error("Failed to create quote");
+
+      const quote = await quoteRes.json();
+      const quoteId = quote.id;
+
+      // Step 2: Create line items for the quote
+      for (const item of lineItems) {
+        if (item.description && item.price > 0) {
+          const lineItemRes = await fetch(
+            `/api/quotes/line-items/create?quote_id=${quoteId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                description: item.description,
+                price: item.price,
+              }),
+              credentials: "include",
+            }
+          );
+
+          if (!lineItemRes.ok) {
+            console.error("Failed to create line item:", item);
+          }
+        }
+      }
+
+      // Step 3: Create secret notes for the quote
+      for (const note of secretNotes) {
+        if (note && note.trim()) {
+          const secretNoteRes = await fetch(
+            `/api/quotes/secret-notes/create?quote_id=${quoteId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                content: note.trim(),
+              }),
+              credentials: "include",
+            }
+          );
+
+          if (!secretNoteRes.ok) {
+            console.error("Failed to create secret note:", note);
+          }
+        }
+      }
+
       setShowModal(false);
       onModalStateChange(false);
       setQuoteForm({
@@ -76,6 +124,10 @@ export default function QuoteCreationSection({
         email: "",
       });
       setSelectedCustomerId("");
+      setLineItems([]);
+      setSecretNotes([""]);
+      setDiscountValue(0);
+      setDiscountType("percent");
       onQuoteCreated();
       alert("Quote created successfully!");
     } catch (error) {
@@ -101,7 +153,7 @@ export default function QuoteCreationSection({
   return (
     <div className={styles.card}>
       <h3 className={styles.cardTitle}>Create New Quote</h3>
-      
+
       <div className={styles.customerSelect}>
         <select
           className={styles.select}
@@ -118,7 +170,7 @@ export default function QuoteCreationSection({
             </option>
           ))}
         </select>
-        
+
         <button
           type="button"
           className={styles.primaryButton}
@@ -128,7 +180,7 @@ export default function QuoteCreationSection({
           New Quote
         </button>
       </div>
-      
+
       <p className={styles.customerCount}>
         {customers.length} customers available
       </p>

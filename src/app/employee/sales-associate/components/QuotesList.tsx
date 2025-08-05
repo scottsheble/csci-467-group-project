@@ -15,7 +15,7 @@ interface Quote {
   customer_id: number;
   email: string;
   final_discount_value?: number;
-  final_discount_type?: "percent" | "amount";
+  final_discount_type?: "percentage" | "amount";
   LineItems?: LineItem[];
   SecretNotes?: { content: string }[];
 }
@@ -27,7 +27,12 @@ interface QuotesListProps {
   onModalStateChange: (isOpen: boolean) => void;
 }
 
-export default function QuotesList({ quotes, customers, onRefresh, onModalStateChange }: QuotesListProps) {
+export default function QuotesList({
+  quotes,
+  customers,
+  onRefresh,
+  onModalStateChange,
+}: QuotesListProps) {
   const [editQuote, setEditQuote] = useState<Quote | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
@@ -70,13 +75,13 @@ export default function QuotesList({ quotes, customers, onRefresh, onModalStateC
                 )
               : 0;
             const discountedCost =
-              quote.final_discount_type === "percent"
+              quote.final_discount_type === "percentage"
                 ? totalCost * (1 - (quote.final_discount_value || 0) / 100)
                 : Math.max(totalCost - (quote.final_discount_value || 0), 0);
-            
+
             // Reverse numbering
             const quoteNumber = quotes.length - idx;
-            
+
             return (
               <div key={quote.id} className={styles.quoteItem}>
                 <div className={styles.quoteInfo}>

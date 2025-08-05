@@ -131,7 +131,7 @@ export default function Home() {
       name: associate.name,
       address: associate.address || "",
       password: "",
-      commission: associate.commission || 0,
+      commission: associate.accumulated_commission || 0,
     });
     setEditModalOpen(true);
   }
@@ -241,11 +241,10 @@ export default function Home() {
       <Background />
       <div className={styles.content}>
         <div className={styles.header}>
-          <h1 className={styles.title}>
-            Administration Panel
-          </h1>
+          <h1 className={styles.title}>Administration Panel</h1>
           <p className={styles.subtitle}>
-            Manage your sales associates and quotes efficiently with our comprehensive platform.
+            Manage your sales associates and quotes efficiently with our
+            comprehensive platform.
           </p>
         </div>
 
@@ -310,10 +309,7 @@ export default function Home() {
                         <td>{associate.name}</td>
                         <td>{associate.email}</td>
                         <td>
-                          $
-                          {Number(
-                            associate.accumulated_commission
-                          ).toFixed(2)}
+                          ${Number(associate.accumulated_commission).toFixed(2)}
                         </td>
                         <td>
                           <button
@@ -324,9 +320,7 @@ export default function Home() {
                           </button>
                           <button
                             className={styles.deleteButton}
-                            onClick={() =>
-                              handleDeleteAssociate(associate.id)
-                            }
+                            onClick={() => handleDeleteAssociate(associate.id)}
                           >
                             Delete
                           </button>
@@ -421,9 +415,7 @@ export default function Home() {
                     </button>
                   </form>
                   {addError && (
-                    <div className={styles.errorMessage}>
-                      {addError}
-                    </div>
+                    <div className={styles.errorMessage}>{addError}</div>
                   )}
                 </div>
                 {/* End Add New Associates */}
@@ -432,7 +424,7 @@ export default function Home() {
               <div className={styles.card}>
                 {/* Start Quotes View */}
                 <h2 className={styles.sectionTitle}>Quotes</h2>
-                
+
                 {/* Filter Controls */}
                 <div className={styles.filterForm}>
                   <input
@@ -567,9 +559,7 @@ export default function Home() {
           <div className={styles.modalDialog}>
             <form onSubmit={handleEditAssociateSubmit}>
               <div className={styles.modalHeader}>
-                <h1 className={styles.modalTitle}>
-                  Edit Sales Associate
-                </h1>
+                <h1 className={styles.modalTitle}>Edit Sales Associate</h1>
                 <button
                   type="button"
                   className={styles.closeButton}
@@ -580,9 +570,7 @@ export default function Home() {
               </div>
               <div className={styles.modalBody}>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Name
-                  </label>
+                  <label className={styles.formLabel}>Name</label>
                   <input
                     type="text"
                     className={styles.formInput}
@@ -593,9 +581,7 @@ export default function Home() {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Address
-                  </label>
+                  <label className={styles.formLabel}>Address</label>
                   <input
                     type="text"
                     className={styles.formInput}
@@ -606,9 +592,7 @@ export default function Home() {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Password
-                  </label>
+                  <label className={styles.formLabel}>Password</label>
                   <input
                     type="password"
                     className={styles.formInput}
@@ -619,9 +603,7 @@ export default function Home() {
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    Commission
-                  </label>
+                  <label className={styles.formLabel}>Commission</label>
                   <input
                     type="number"
                     className={styles.formInput}
@@ -655,9 +637,7 @@ export default function Home() {
         <div className={styles.modal}>
           <div className={styles.modalDialog}>
             <div className={styles.modalHeader}>
-              <h1 className={styles.modalTitle}>
-                Quote Details
-              </h1>
+              <h1 className={styles.modalTitle}>Quote Details</h1>
               <button
                 type="button"
                 className={styles.closeButton}
@@ -674,20 +654,24 @@ export default function Home() {
                     {selectedQuote.customer_name || ""}
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Address:</span> {selectedQuote.address || ""}
+                    <span className={styles.detailLabel}>Address:</span>{" "}
+                    {selectedQuote.address || ""}
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Email:</span> {selectedQuote.email || ""}
+                    <span className={styles.detailLabel}>Email:</span>{" "}
+                    {selectedQuote.email || ""}
                   </div>
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Sales Associate:</span>{" "}
                     {selectedQuote.SalesAssociate?.name || ""}
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Date:</span> {selectedQuote.date_created}
+                    <span className={styles.detailLabel}>Date:</span>{" "}
+                    {selectedQuote.date_created}
                   </div>
                   <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Status:</span> {selectedQuote.status}
+                    <span className={styles.detailLabel}>Status:</span>{" "}
+                    {selectedQuote.status}
                   </div>
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Line Items:</span>
@@ -703,7 +687,9 @@ export default function Home() {
                     <span className={styles.detailLabel}>Secret Notes:</span>
                     <div className={styles.detailList}>
                       {selectedQuote.SecretNotes?.map((note: any) => (
-                        <div key={note.id} className={styles.detailListItem}>{note.content}</div>
+                        <div key={note.id} className={styles.detailListItem}>
+                          {note.content}
+                        </div>
                       ))}
                     </div>
                   </div>

@@ -15,7 +15,7 @@ interface Quote {
   customer_id: number;
   email: string;
   final_discount_value?: number;
-  final_discount_type?: "percent" | "amount";
+  final_discount_type?: "percentage" | "amount";
   LineItems?: LineItem[];
   SecretNotes?: { content: string }[];
 }
@@ -34,7 +34,7 @@ export default function EditQuoteModal({
   onQuoteUpdated,
 }: EditQuoteModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  
+
   const [editLineItems, setEditLineItems] = useState<LineItem[]>(
     Array.isArray(quote.LineItems) && quote.LineItems.length > 0
       ? quote.LineItems.map((li: any) => ({
@@ -43,24 +43,33 @@ export default function EditQuoteModal({
         }))
       : [{ description: "", price: 0 }]
   );
-  
+
   const [editSecretNotes, setEditSecretNotes] = useState<string[]>(
     Array.isArray(quote.SecretNotes) && quote.SecretNotes.length > 0
       ? quote.SecretNotes.map((n: any) => n.content || "")
       : [""]
   );
-  
+
   const [editDiscountValue, setEditDiscountValue] = useState<number>(
     quote.final_discount_value ?? 0
   );
-  
-  const [editDiscountType, setEditDiscountType] = useState<"percent" | "amount">(
-    quote.final_discount_type ?? "percent"
+
+  const [editDiscountType, setEditDiscountType] = useState<
+    "percent" | "amount"
+  >(
+    quote.final_discount_type === "percentage"
+      ? "percent"
+      : quote.final_discount_type === "amount"
+      ? "amount"
+      : "percent"
   );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     }
@@ -70,7 +79,7 @@ export default function EditQuoteModal({
         onClose();
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
 
@@ -88,7 +97,11 @@ export default function EditQuoteModal({
     setEditLineItems(editLineItems.filter((_, i) => i !== index));
   }
 
-  function handleEditLineItemChange(index: number, field: string, value: string) {
+  function handleEditLineItemChange(
+    index: number,
+    field: string,
+    value: string
+  ) {
     setEditLineItems(
       editLineItems.map((item, i) =>
         i === index
@@ -107,21 +120,89 @@ export default function EditQuoteModal({
   }
 
   function handleEditSecretNoteChange(idx: number, value: string) {
-    setEditSecretNotes(editSecretNotes.map((note, i) => (i === idx ? value : note)));
+    setEditSecretNotes(
+      editSecretNotes.map((note, i) => (i === idx ? value : note))
+    );
   }
 
   async function handleFinalizeQuote() {
     try {
-      const response = await fetch(`/api/quotes/${quote.id}/finalize`, {
-        method: "POST",
+      // Step 1: Get existing line items and secret notes to compare
+      const currentQuoteResponse = await fetch(
+        `/api/quotes/get?quote_id=${quote.id}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!currentQuoteResponse.ok) {
+        throw new Error("Failed to fetch current quote data");
+      }
+
+      const currentQuote = await currentQuoteResponse.json();
+
+      // Step 2: Update line items
+      // First, delete all existing line items
+      if (currentQuote.LineItems && currentQuote.LineItems.length > 0) {
+        for (const item of currentQuote.LineItems) {
+          await fetch(`/api/quotes/line-items/delete?line_item_id=${item.id}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+        }
+      }
+
+      // Then create new line items
+      for (const item of editLineItems) {
+        if (item.description && item.price > 0) {
+          await fetch(`/api/quotes/line-items/create?quote_id=${quote.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              description: item.description,
+              price: item.price,
+            }),
+            credentials: "include",
+          });
+        }
+      }
+
+      // Step 3: Update secret notes
+      // First, delete all existing secret notes
+      if (currentQuote.SecretNotes && currentQuote.SecretNotes.length > 0) {
+        for (const note of currentQuote.SecretNotes) {
+          await fetch(
+            `/api/quotes/secret-notes/delete?secret_note_id=${note.id}`,
+            {
+              method: "DELETE",
+              credentials: "include",
+            }
+          );
+        }
+      }
+
+      // Then create new secret notes
+      for (const note of editSecretNotes) {
+        if (note && note.trim()) {
+          await fetch(`/api/quotes/secret-notes/create?quote_id=${quote.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: note.trim(),
+            }),
+            credentials: "include",
+          });
+        }
+      }
+
+      // Step 4: Update the quote status and discount
+      const response = await fetch(`/api/quotes/edit?quote_id=${quote.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          lineItems: editLineItems,
-          secretNotes: editSecretNotes,
           final_discount_value: editDiscountValue,
-          final_discount_type: editDiscountType,
-          email: quote.email,
-          customer_id: quote.customer_id,
+          final_discount_type:
+            editDiscountType === "percent" ? "percentage" : "amount",
           status: "FinalizedUnresolvedQuote",
         }),
         credentials: "include",
@@ -139,7 +220,10 @@ export default function EditQuoteModal({
     }
   }
 
-  const totalCost = editLineItems.reduce((sum, item) => sum + Number(item.price), 0);
+  const totalCost = editLineItems.reduce(
+    (sum, item) => sum + Number(item.price),
+    0
+  );
   const discountedCost =
     editDiscountType === "percent"
       ? totalCost * (1 - editDiscountValue / 100)
@@ -165,7 +249,7 @@ export default function EditQuoteModal({
         <div className={modalStyles.form}>
           <div className={modalStyles.section}>
             <h3 className={modalStyles.sectionTitle}>Line Items</h3>
-            
+
             {editLineItems.map((item, idx) => (
               <div key={idx} className={modalStyles.lineItem}>
                 <input
@@ -201,7 +285,7 @@ export default function EditQuoteModal({
                 </button>
               </div>
             ))}
-            
+
             <button
               type="button"
               className={styles.secondaryButton}
@@ -213,13 +297,15 @@ export default function EditQuoteModal({
 
           <div className={modalStyles.section}>
             <h3 className={modalStyles.sectionTitle}>Secret Notes</h3>
-            
+
             {editSecretNotes.map((note, idx) => (
               <div key={idx} className={modalStyles.noteItem}>
                 <textarea
                   className={modalStyles.textarea}
                   value={note}
-                  onChange={(e) => handleEditSecretNoteChange(idx, e.target.value)}
+                  onChange={(e) =>
+                    handleEditSecretNoteChange(idx, e.target.value)
+                  }
                   placeholder="Enter secret note..."
                 />
                 <button
@@ -233,7 +319,7 @@ export default function EditQuoteModal({
                 </button>
               </div>
             ))}
-            
+
             <button
               type="button"
               className={styles.secondaryButton}
@@ -245,7 +331,7 @@ export default function EditQuoteModal({
 
           <div className={modalStyles.section}>
             <h3 className={modalStyles.sectionTitle}>Final Discount</h3>
-            
+
             <div className={modalStyles.discountRow}>
               <input
                 type="number"
@@ -254,7 +340,7 @@ export default function EditQuoteModal({
                 min="0"
                 onChange={(e) => setEditDiscountValue(Number(e.target.value))}
               />
-              
+
               <div className={modalStyles.radioGroup}>
                 <label className={modalStyles.radioLabel}>
                   <input
@@ -299,7 +385,9 @@ export default function EditQuoteModal({
               onClick={handleFinalizeQuote}
               disabled={
                 editLineItems.length === 0 ||
-                editLineItems.some((item) => !item.description || item.price <= 0)
+                editLineItems.some(
+                  (item) => !item.description || item.price <= 0
+                )
               }
             >
               Finalize Quote
