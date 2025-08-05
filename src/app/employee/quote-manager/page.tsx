@@ -37,6 +37,13 @@ export default function QuoteManagerPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>('');
     const [updatingQuote, setUpdatingQuote] = useState<number | null>(null);
+    const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [newLineItem, setNewLineItem] = useState({ description: '', price: '' });
+    const [editingLineItem, setEditingLineItem] = useState<LineItem | null>(null);
+    const [initialDiscount, setInitialDiscount] = useState({ value: '', type: 'percentage' });
+    const [finalDiscount, setFinalDiscount] = useState({ value: '', type: 'percentage' });
+    const [showPurchaseOrderModal, setShowPurchaseOrderModal] = useState(false);
     const { user, isLoading } = useAuth();
 
     useEffect(() => {
@@ -121,6 +128,226 @@ export default function QuoteManagerPage() {
         }
     };
 
+    // Line Item Management Functions
+    const openQuoteModal = (quote: Quote) => {
+        setEditingQuote(quote);
+        setInitialDiscount({
+            value: quote.initial_discount_value?.toString() || '',
+            type: quote.initial_discount_type || 'percentage'
+        });
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setEditingQuote(null);
+        setEditingLineItem(null);
+        setNewLineItem({ description: '', price: '' });
+        setInitialDiscount({ value: '', type: 'percentage' });
+    };
+
+    const addLineItem = async () => {
+        if (!editingQuote || !newLineItem.description || !newLineItem.price) return;
+
+        try {
+            const response = await fetch(`/api/quotes/line-items/create?quote_id=${editingQuote.id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: newLineItem.description,
+                    price: parseFloat(newLineItem.price)
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to add line item');
+            }
+
+            setNewLineItem({ description: '', price: '' });
+            await fetchQuotes();
+            
+            // Update the editing quote with fresh data
+            const updatedQuotes = await fetch('/api/quotes/get');
+            const data = await updatedQuotes.json();
+            const updatedQuote = data.find((q: Quote) => q.id === editingQuote.id);
+            if (updatedQuote) {
+                setEditingQuote(updatedQuote);
+            }
+        } catch (error) {
+            console.error('Failed to add line item:', error);
+            setError(`Failed to add line item: ${(error as Error).message}`);
+        }
+    };
+
+    const updateLineItem = async () => {
+        if (!editingLineItem) return;
+
+        try {
+            const response = await fetch(`/api/quotes/line-items/edit?line_item_id=${editingLineItem.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: editingLineItem.description,
+                    price: editingLineItem.price
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update line item');
+            }
+
+            setEditingLineItem(null);
+            await fetchQuotes();
+            
+            // Update the editing quote with fresh data
+            const updatedQuotes = await fetch('/api/quotes/get');
+            const data = await updatedQuotes.json();
+            const updatedQuote = data.find((q: Quote) => q.id === editingQuote?.id);
+            if (updatedQuote) {
+                setEditingQuote(updatedQuote);
+            }
+        } catch (error) {
+            console.error('Failed to update line item:', error);
+            setError(`Failed to update line item: ${(error as Error).message}`);
+        }
+    };
+
+    const deleteLineItem = async (lineItemId: number) => {
+        try {
+            const response = await fetch(`/api/quotes/line-items/delete?line_item_id=${lineItemId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete line item');
+            }
+
+            await fetchQuotes();
+            
+            // Update the editing quote with fresh data
+            const updatedQuotes = await fetch('/api/quotes/get');
+            const data = await updatedQuotes.json();
+            const updatedQuote = data.find((q: Quote) => q.id === editingQuote?.id);
+            if (updatedQuote) {
+                setEditingQuote(updatedQuote);
+            }
+        } catch (error) {
+            console.error('Failed to delete line item:', error);
+            setError(`Failed to delete line item: ${(error as Error).message}`);
+        }
+    };
+
+    const updateQuoteDiscounts = async () => {
+        if (!editingQuote) return;
+
+        try {
+            const body: any = {};
+            
+            if (initialDiscount.value) {
+                body.initial_discount_value = parseFloat(initialDiscount.value);
+                body.initial_discount_type = initialDiscount.type;
+            }
+
+            const response = await fetch(`/api/quotes/edit?quote_id=${editingQuote.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update discounts');
+            }
+
+            await fetchQuotes();
+            closeModal();
+        } catch (error) {
+            console.error('Failed to update discounts:', error);
+            setError(`Failed to update discounts: ${(error as Error).message}`);
+        }
+    };
+
+    const convertToPurchaseOrder = async (quote: Quote) => {
+        if (!finalDiscount.value) {
+            setError('Final discount is required for purchase order conversion');
+            return;
+        }
+
+        try {
+            // First update the quote with final discount
+            await fetch(`/api/quotes/edit?quote_id=${quote.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    final_discount_value: parseFloat(finalDiscount.value),
+                    final_discount_type: finalDiscount.type
+                }),
+            });
+
+            // Calculate final total
+            const subtotal = quote.LineItems?.reduce((sum, item) => sum + Number(item.price), 0) || 0;
+            let discount = 0;
+            if (finalDiscount.type === 'percentage') {
+                discount = subtotal * (parseFloat(finalDiscount.value) / 100);
+            } else {
+                discount = parseFloat(finalDiscount.value);
+            }
+            const finalTotal = subtotal - discount;
+
+            // Send to external processing system
+            const externalResponse = await fetch('http://blitz.cs.niu.edu/PurchaseOrder/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    order: `order-${Date.now()}`,
+                    associate: quote.sales_associate_id,
+                    custid: quote.customer_id.toString(),
+                    amount: finalTotal.toFixed(2),
+                }),
+            });
+
+            const result = await externalResponse.json();
+
+            if (result.errors) {
+                throw new Error(result.errors.join(', '));
+            }
+
+            // Update quote status to purchase order
+            await fetch(`/api/quotes/edit?quote_id=${quote.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    status: 'UnprocessedPurchaseOrder'
+                }),
+            });
+
+            alert(`Purchase Order processed successfully!\nProcessing Date: ${result.processDay}\nCommission Rate: ${result.commission}`);
+            
+            await fetchQuotes();
+            setShowPurchaseOrderModal(false);
+            setFinalDiscount({ value: '', type: 'percentage' });
+        } catch (error) {
+            console.error('Failed to convert to purchase order:', error);
+            setError(`Failed to convert to purchase order: ${(error as Error).message}`);
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'DraftQuote':
@@ -155,16 +382,28 @@ export default function QuoteManagerPage() {
         if (!quote.LineItems) return 0;
         const subtotal = quote.LineItems.reduce((sum, item) => sum + Number(item.price), 0);
         
-        let discount = 0;
-        if (quote.final_discount_value && quote.final_discount_type) {
-            if (quote.final_discount_type === 'percentage') {
-                discount = subtotal * (Number(quote.final_discount_value) / 100);
+        let totalDiscount = 0;
+        
+        // Apply initial discount
+        if (quote.initial_discount_value && quote.initial_discount_type) {
+            if (quote.initial_discount_type === 'percentage') {
+                totalDiscount += subtotal * (Number(quote.initial_discount_value) / 100);
             } else {
-                discount = Number(quote.final_discount_value);
+                totalDiscount += Number(quote.initial_discount_value);
             }
         }
         
-        return subtotal - discount;
+        // Apply final discount
+        if (quote.final_discount_value && quote.final_discount_type) {
+            const discountBase = subtotal - (quote.initial_discount_value ? totalDiscount : 0);
+            if (quote.final_discount_type === 'percentage') {
+                totalDiscount += discountBase * (Number(quote.final_discount_value) / 100);
+            } else {
+                totalDiscount += Number(quote.final_discount_value);
+            }
+        }
+        
+        return Math.max(0, subtotal - totalDiscount);
     };
 
     if (isLoading) {
@@ -270,6 +509,22 @@ export default function QuoteManagerPage() {
                                         <span className={styles.detailLabel}>Sales Associate:</span>
                                         {quote.SalesAssociate?.name || 'Unknown'}
                                     </div>
+                                    {quote.initial_discount_value && (
+                                        <div className={styles.detailItem}>
+                                            <span className={styles.detailLabel}>Initial Discount:</span>
+                                            {quote.initial_discount_type === 'percentage' 
+                                                ? `${quote.initial_discount_value}%` 
+                                                : `$${Number(quote.initial_discount_value).toFixed(2)}`}
+                                        </div>
+                                    )}
+                                    {quote.final_discount_value && (
+                                        <div className={styles.detailItem}>
+                                            <span className={styles.detailLabel}>Final Discount:</span>
+                                            {quote.final_discount_type === 'percentage' 
+                                                ? `${quote.final_discount_value}%` 
+                                                : `$${Number(quote.final_discount_value).toFixed(2)}`}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {quote.LineItems && quote.LineItems.length > 0 && (
@@ -288,6 +543,12 @@ export default function QuoteManagerPage() {
                                 </div>
 
                                 <div className={styles.actionButtons}>
+                                    <button
+                                        onClick={() => openQuoteModal(quote)}
+                                        className={styles.secondaryButton}
+                                    >
+                                        Edit Quote
+                                    </button>
                                     {quote.status === 'FinalizedUnresolvedQuote' && (
                                         <button
                                             onClick={() => sanctionQuote(quote.id)}
@@ -306,12 +567,226 @@ export default function QuoteManagerPage() {
                                             {updatingQuote === quote.id ? 'Finalizing...' : 'Finalize Quote'}
                                         </button>
                                     )}
+                                    {quote.status === 'SanctionedQuote' && (
+                                        <button
+                                            onClick={() => {
+                                                setEditingQuote(quote);
+                                                setShowPurchaseOrderModal(true);
+                                            }}
+                                            className={styles.primaryButton}
+                                        >
+                                            Convert to Purchase Order
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Quote Edit Modal */}
+            {showModal && editingQuote && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h2>Edit Quote #{editingQuote.id}</h2>
+                            <button onClick={closeModal} className={styles.closeButton}>×</button>
+                        </div>
+                        
+                        <div className={styles.modalBody}>
+                            {/* Line Items Section */}
+                            <div className={styles.section}>
+                                <h3>Line Items</h3>
+                                <div className={styles.lineItemsList}>
+                                    {editingQuote.LineItems?.map((item) => (
+                                        <div key={item.id} className={styles.lineItemRow}>
+                                            {editingLineItem?.id === item.id ? (
+                                                <>
+                                                    <input
+                                                        type="text"
+                                                        value={editingLineItem.description}
+                                                        onChange={(e) => setEditingLineItem({
+                                                            ...editingLineItem,
+                                                            description: e.target.value
+                                                        })}
+                                                        className={styles.input}
+                                                        placeholder="Description"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        value={editingLineItem.price}
+                                                        onChange={(e) => setEditingLineItem({
+                                                            ...editingLineItem,
+                                                            price: parseFloat(e.target.value)
+                                                        })}
+                                                        className={styles.input}
+                                                        placeholder="Price"
+                                                        step="0.01"
+                                                    />
+                                                    <button onClick={updateLineItem} className={styles.saveButton}>Save</button>
+                                                    <button onClick={() => setEditingLineItem(null)} className={styles.cancelButton}>Cancel</button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className={styles.itemDescription}>{item.description}</span>
+                                                    <span className={styles.itemPrice}>${Number(item.price).toFixed(2)}</span>
+                                                    <button
+                                                        onClick={() => setEditingLineItem(item)}
+                                                        className={styles.editButton}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteLineItem(item.id)}
+                                                        className={styles.deleteButton}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                {/* Add New Line Item */}
+                                <div className={styles.addLineItem}>
+                                    <input
+                                        type="text"
+                                        value={newLineItem.description}
+                                        onChange={(e) => setNewLineItem({
+                                            ...newLineItem,
+                                            description: e.target.value
+                                        })}
+                                        className={styles.input}
+                                        placeholder="New item description"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={newLineItem.price}
+                                        onChange={(e) => setNewLineItem({
+                                            ...newLineItem,
+                                            price: e.target.value
+                                        })}
+                                        className={styles.input}
+                                        placeholder="Price"
+                                        step="0.01"
+                                    />
+                                    <button onClick={addLineItem} className={styles.addButton}>Add Item</button>
+                                </div>
+                            </div>
+
+                            {/* Initial Discount Section */}
+                            <div className={styles.section}>
+                                <h3>Initial Discount</h3>
+                                <div className={styles.discountRow}>
+                                    <input
+                                        type="number"
+                                        value={initialDiscount.value}
+                                        onChange={(e) => setInitialDiscount({
+                                            ...initialDiscount,
+                                            value: e.target.value
+                                        })}
+                                        className={styles.input}
+                                        placeholder="Discount value"
+                                        step="0.01"
+                                    />
+                                    <select
+                                        value={initialDiscount.type}
+                                        onChange={(e) => setInitialDiscount({
+                                            ...initialDiscount,
+                                            type: e.target.value
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="percentage">Percentage</option>
+                                        <option value="amount">Fixed Amount</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className={styles.modalActions}>
+                            <button onClick={updateQuoteDiscounts} className={styles.primaryButton}>
+                                Save Changes
+                            </button>
+                            <button onClick={closeModal} className={styles.secondaryButton}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Purchase Order Modal */}
+            {showPurchaseOrderModal && editingQuote && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h2>Convert to Purchase Order</h2>
+                            <button 
+                                onClick={() => setShowPurchaseOrderModal(false)} 
+                                className={styles.closeButton}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        
+                        <div className={styles.modalBody}>
+                            <div className={styles.section}>
+                                <h3>Quote #{editingQuote.id}</h3>
+                                <p>Customer: {editingQuote.email}</p>
+                                <p>Current Total: ${calculateTotal(editingQuote).toFixed(2)}</p>
+                            </div>
+                            
+                            <div className={styles.section}>
+                                <h3>Final Discount (Required)</h3>
+                                <div className={styles.discountRow}>
+                                    <input
+                                        type="number"
+                                        value={finalDiscount.value}
+                                        onChange={(e) => setFinalDiscount({
+                                            ...finalDiscount,
+                                            value: e.target.value
+                                        })}
+                                        className={styles.input}
+                                        placeholder="Final discount value"
+                                        step="0.01"
+                                        required
+                                    />
+                                    <select
+                                        value={finalDiscount.type}
+                                        onChange={(e) => setFinalDiscount({
+                                            ...finalDiscount,
+                                            type: e.target.value
+                                        })}
+                                        className={styles.select}
+                                    >
+                                        <option value="percentage">Percentage</option>
+                                        <option value="amount">Fixed Amount</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className={styles.modalActions}>
+                            <button 
+                                onClick={() => convertToPurchaseOrder(editingQuote)} 
+                                className={styles.primaryButton}
+                                disabled={!finalDiscount.value}
+                            >
+                                Convert to Purchase Order
+                            </button>
+                            <button 
+                                onClick={() => setShowPurchaseOrderModal(false)} 
+                                className={styles.secondaryButton}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
